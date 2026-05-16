@@ -108,8 +108,12 @@ h1 em {
   font-style: italic;
   font-weight: 500;
   color: var(--plum);
-  background: linear-gradient(180deg, transparent 62%, rgba(232, 222, 247, 0.85) 62%);
-  padding: 0 .08em;
+  /* Playful wavy underline — gives a friendly, slightly hand-drawn touch */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 8' preserveAspectRatio='none'><path d='M0 4 Q 7.5 0 15 4 T 30 4 T 45 4 T 60 4' stroke='%23C8B6E2' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  background-size: 60px 8px;
+  padding: 0 .08em .18em;
 }
 h2 { font-size: clamp(1.8rem, 3.2vw, 2.6rem); }
 h3 { font-size: 1.15rem; }
