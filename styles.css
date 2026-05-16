@@ -1037,3 +1037,150 @@ p  { margin: 0 0 1em; color: var(--ink-soft); }
   .bundle__visual { min-height: 260px; max-width: 420px; margin: 0 auto; order: -1; }
   .bundle__sticker { width: 72px; height: 72px; font-size: .95rem; }
 }
+
+
+
+/* ============================================
+   About / Founder strip
+   ============================================ */
+.about {
+  padding: clamp(3rem, 6vw, 5rem) 0;
+}
+.about__inner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  align-items: center;
+  background:
+    radial-gradient(420px 240px at 100% 0%, rgba(232,222,247,.6), transparent 60%),
+    radial-gradient(380px 220px at 0% 100%, rgba(248,221,232,.55), transparent 60%),
+    var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  box-shadow: var(--shadow-sm);
+}
+.about__avatar {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--lavender), var(--blush) 60%, var(--peach));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(110, 90, 160, 0.18);
+}
+.about__initial {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 2.1rem;
+  color: var(--plum-deep);
+  line-height: 1;
+}
+.about__sparkle {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+}
+.about__copy h2 {
+  margin: .25rem 0 .5rem;
+  max-width: 26ch;
+}
+.about__copy p {
+  margin: 0 0 .5rem;
+  max-width: 56ch;
+  color: var(--ink-soft);
+}
+.about__sign {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--plum);
+  margin-top: .5rem !important;
+}
+
+@media (max-width: 640px) {
+  .about__inner {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+  .about__avatar { margin-bottom: .25rem; }
+}
+
+/* ============================================
+   FAQ
+   ============================================ */
+.faq {
+  padding: clamp(3rem, 6vw, 5rem) 0;
+}
+.faq__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.faq__item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 0;
+  overflow: hidden;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.faq__item[open] {
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-sm);
+}
+.faq__item summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.02rem;
+  color: var(--ink);
+  user-select: none;
+}
+.faq__item summary::-webkit-details-marker { display: none; }
+.faq__item summary:hover { color: var(--plum); }
+
+.faq__chev {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--lavender);
+  color: var(--plum-deep);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: transform .2s ease, background .2s ease;
+}
+.faq__item[open] .faq__chev {
+  transform: rotate(45deg);
+  background: var(--lilac);
+}
+
+.faq__body {
+  padding: 0 1.25rem 1.25rem;
+}
+.faq__body p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .faq__grid { grid-template-columns: 1fr; }
+}

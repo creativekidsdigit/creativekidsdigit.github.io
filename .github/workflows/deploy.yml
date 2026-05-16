@@ -1,0 +1,49 @@
+# Deploy the static site to GitHub Pages
+#
+# After this is merged to `main`:
+# 1. Go to repo Settings → Pages
+# 2. Set "Source" to "GitHub Actions"
+# 3. The next push to main will trigger this workflow and your site goes live at
+#    https://creativekidsdigit.github.io/digital---product-store/
+#
+# No build step is needed — index.html, styles.css, and script.js are uploaded as-is.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # lets you trigger manually from the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Avoid running multiple deploys at once
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Static site lives at the repo root
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
