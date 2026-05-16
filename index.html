@@ -627,30 +627,27 @@
     </div>
   </section>
 
-  <!-- Newsletter (Mailchimp) -->
+  <!--
+    Newsletter — Mailchimp is NOT connected yet.
+    The form below is a polished placeholder: it validates the email and shows a
+    friendly "coming soon" message instead of submitting anywhere.
+
+    To wire up Mailchimp later (~2 min):
+    1. In Mailchimp: Audience → Signup forms → Embedded forms → copy the embed snippet
+    2. Replace the form's `data-coming-soon` with `action="https://...list-manage.com/subscribe/post?u=...&id=..."` plus method="post" and target="_blank"
+    3. Re-add the hidden honeypot field (b_USERID_LISTID) from the snippet
+    See `.kiro/steering/payhip-setup.md` (or a future `mailchimp-setup.md`) for details.
+  -->
   <section id="newsletter" class="newsletter">
     <div class="container">
       <div class="newsletter__card">
         <div class="newsletter__copy">
-          <span class="eyebrow">Free printable</span>
+          <span class="eyebrow">Free printable · Coming soon</span>
           <h2>Join the Fearless Creations list</h2>
-          <p>One soft email a week, plus a free <strong>Calm Morning printable pack</strong> when you join. No spam — just gentle ideas, new releases, and subscriber-only freebies.</p>
+          <p>One soft email a week, plus a free <strong>Calm Morning printable pack</strong> when the list opens. No spam — just gentle ideas, new releases, and subscriber-only freebies.</p>
         </div>
 
-        <!--
-          Mailchimp embedded form.
-          Replace the action URL below with the one from your Mailchimp audience:
-            Audience → Signup forms → Embedded forms → Form action URL
-          The hidden honeypot field name (b_USERID_LISTID) must also be updated
-          to the values shown in your Mailchimp embed snippet.
-        -->
-        <form
-          class="newsletter__form mc-form"
-          action="https://YOUR_DC.list-manage.com/subscribe/post?u=YOUR_USER_ID&amp;id=YOUR_LIST_ID"
-          method="post"
-          target="_blank"
-          novalidate
-        >
+        <form class="newsletter__form mc-form" data-coming-soon novalidate>
           <label for="mce-EMAIL" class="visually-hidden">Email address</label>
           <input
             id="mce-EMAIL"
@@ -661,11 +658,6 @@
             required
           />
           <button type="submit" class="btn btn--primary" name="subscribe">Get my free pack</button>
-
-          <!-- Mailchimp anti-bot honeypot. Replace the field name with the one from your embed snippet. -->
-          <div aria-hidden="true" style="position:absolute;left:-5000px;">
-            <input type="text" name="b_YOUR_USER_ID_YOUR_LIST_ID" tabindex="-1" value="" />
-          </div>
 
           <p class="newsletter__note" id="newsletter-note" role="status" aria-live="polite">
             We respect your inbox. Unsubscribe any time.

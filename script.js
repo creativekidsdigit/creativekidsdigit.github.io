@@ -23,13 +23,16 @@
     });
   }
 
-  // Newsletter (Mailchimp) — light client-side validation + friendly status.
-  // The form posts directly to Mailchimp via its action URL. We do NOT preventDefault
-  // on success, so the user is taken to Mailchimp's confirmation page (in a new tab).
+  // Newsletter form
+  // - When the form has [data-coming-soon] (Mailchimp not yet connected):
+  //     validate the email, show a friendly "coming soon" message, do not submit.
+  // - When [data-coming-soon] is removed (Mailchimp wired up):
+  //     validate the email and let the browser submit to Mailchimp normally.
   var form = document.querySelector('.mc-form');
   var note = document.getElementById('newsletter-note');
   if (form && note) {
     var defaultMessage = note.textContent;
+    var isComingSoon = form.hasAttribute('data-coming-soon');
 
     form.addEventListener('submit', function (e) {
       var input = form.querySelector('input[type="email"]');
@@ -46,11 +49,22 @@
         return;
       }
 
-      // Let Mailchimp handle the actual subscribe (form opens in a new tab via target="_blank").
-      note.textContent = 'Opening Mailchimp to confirm your subscription…';
-      note.classList.add('is-success');
+      if (isComingSoon) {
+        // Mailchimp not connected yet — show a friendly placeholder message.
+        e.preventDefault();
+        note.textContent = "Thanks! The list opens soon — we'll keep this email and send your pack when it's ready.";
+        note.classList.add('is-success');
+        try { form.reset(); } catch (_) {}
+        window.setTimeout(function () {
+          note.classList.remove('is-success', 'is-error');
+          note.textContent = defaultMessage;
+        }, 8000);
+        return;
+      }
 
-      // Reset the field shortly after, and restore the helper text.
+      // Mailchimp is wired up — let the browser submit (target="_blank" opens Mailchimp).
+      note.textContent = 'Opening confirmation page…';
+      note.classList.add('is-success');
       window.setTimeout(function () {
         try { form.reset(); } catch (_) {}
       }, 400);
