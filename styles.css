@@ -218,11 +218,11 @@ p  { margin: 0 0 1em; color: var(--ink-soft); }
   align-items: center;
   justify-content: center;
   width: 40px; height: 40px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--lavender), var(--blush) 60%, var(--peach));
-  color: var(--plum-deep);
-  box-shadow: 0 4px 12px rgba(110, 90, 160, 0.18);
+  color: var(--plum);
+  /* Editorial line-art mark — no badge, lets the wordmark breathe */
+  transition: transform .3s ease;
 }
+.brand:hover .brand__mark { transform: rotate(-12deg); }
 .brand__name { letter-spacing: -0.005em; }
 .brand__name em {
   font-style: italic;
