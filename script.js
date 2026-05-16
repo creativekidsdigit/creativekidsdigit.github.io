@@ -1,4 +1,4 @@
-// Little Quiet Co. — small interactions
+// Fearless Creations — small interactions
 (function () {
   // Footer year
   var yearEl = document.getElementById('year');
@@ -23,14 +23,15 @@
     });
   }
 
-  // Newsletter form
-  var form = document.querySelector('.newsletter__form');
+  // Newsletter (Mailchimp) — light client-side validation + friendly status.
+  // The form posts directly to Mailchimp via its action URL. We do NOT preventDefault
+  // on success, so the user is taken to Mailchimp's confirmation page (in a new tab).
+  var form = document.querySelector('.mc-form');
   var note = document.getElementById('newsletter-note');
   if (form && note) {
     var defaultMessage = note.textContent;
 
     form.addEventListener('submit', function (e) {
-      e.preventDefault();
       var input = form.querySelector('input[type="email"]');
       var value = (input && input.value || '').trim();
       var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -38,18 +39,21 @@
       note.classList.remove('is-success', 'is-error');
 
       if (!emailOk) {
+        e.preventDefault();
         note.textContent = 'Please enter a valid email so we can send your free pack.';
         note.classList.add('is-error');
         if (input) input.focus();
         return;
       }
 
-      // Simulated success — wire to a real endpoint when ready
-      note.textContent = 'Yay! Check your inbox — your Calm Morning pack is on its way.';
+      // Let Mailchimp handle the actual subscribe (form opens in a new tab via target="_blank").
+      note.textContent = 'Opening Mailchimp to confirm your subscription…';
       note.classList.add('is-success');
-      form.reset();
 
-      // Restore default helper text after a moment
+      // Reset the field shortly after, and restore the helper text.
+      window.setTimeout(function () {
+        try { form.reset(); } catch (_) {}
+      }, 400);
       window.setTimeout(function () {
         note.classList.remove('is-success', 'is-error');
         note.textContent = defaultMessage;
@@ -60,7 +64,7 @@
   // Subtle reveal on scroll
   if ('IntersectionObserver' in window) {
     var revealTargets = document.querySelectorAll(
-      '.section__head, .cat, .product, .quote, .testimonials__stats > div, .newsletter__card'
+      '.section__head, .collection__head, .cat, .product, .quote, .testimonials__stats > div, .newsletter__card'
     );
     revealTargets.forEach(function (el) {
       el.style.opacity = '0';
