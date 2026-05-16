@@ -892,3 +892,148 @@ p  { margin: 0 0 1em; color: var(--ink-soft); }
   .footer__cols     { grid-template-columns: 1fr 1fr; }
   .announcement     { font-size: .8rem; }
 }
+
+
+/* ============================================
+   Dual checkout buttons (Add to cart + Buy now)
+   ============================================ */
+.btn--sm {
+  padding: .55em .9em;
+  font-size: .85rem;
+}
+.product__buttons {
+  display: inline-flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ============================================
+   Bundle callout
+   ============================================ */
+.bundle {
+  padding: clamp(2rem, 5vw, 4rem) 0;
+}
+.bundle__card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
+  background:
+    radial-gradient(420px 240px at 90% 0%, rgba(252,224,207,.7), transparent 60%),
+    radial-gradient(500px 300px at 0% 100%, rgba(232,222,247,.85), transparent 60%),
+    #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: clamp(2rem, 4vw, 3rem);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.bundle__copy h2 { margin-top: .25rem; }
+.bundle__copy p { color: var(--ink-soft); margin-bottom: 1.2rem; max-width: 38ch; }
+
+.bundle__list {
+  list-style: none;
+  padding: 0; margin: 0 0 1.6rem;
+  display: grid; gap: .55rem;
+  font-size: .95rem;
+  color: var(--ink-soft);
+}
+.bundle__list li {
+  display: inline-flex; align-items: center; gap: .55rem;
+}
+.bundle__list svg { color: var(--plum); flex-shrink: 0; }
+.bundle__list strong { color: var(--ink); }
+
+.bundle__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.bundle__price {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.6rem;
+  color: var(--ink);
+}
+.bundle__price s {
+  color: var(--ink-mute);
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-right: .4rem;
+}
+
+/* Stacked product cover mockups */
+.bundle__visual {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-height: 280px;
+}
+.bundle__stack {
+  position: absolute;
+  width: 56%;
+  height: 70%;
+  top: 50%; left: 50%;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--line);
+}
+.bundle__stack--1 {
+  transform: translate(-72%, -52%) rotate(-9deg);
+  background:
+    repeating-linear-gradient(0deg, rgba(46,38,64,.06) 0 1px, transparent 1px 14px),
+    linear-gradient(135deg, #EDE3FA, #D7C7F0);
+}
+.bundle__stack--2 {
+  transform: translate(-50%, -56%) rotate(-2deg);
+  background:
+    radial-gradient(circle at 50% 35%, rgba(110,90,160,.16) 0 22px, transparent 23px),
+    linear-gradient(135deg, #FCE3EE, #F2C2D6);
+}
+.bundle__stack--3 {
+  transform: translate(-30%, -46%) rotate(5deg);
+  background:
+    radial-gradient(circle at 30% 35%, rgba(181,222,198,.6) 0 16px, transparent 17px),
+    radial-gradient(circle at 65% 60%, rgba(200,182,226,.55) 0 18px, transparent 19px),
+    radial-gradient(circle at 50% 80%, rgba(242,194,214,.6) 0 12px, transparent 13px),
+    linear-gradient(135deg, #DEF1E7, #B5DEC6);
+}
+.bundle__stack--4 {
+  transform: translate(-12%, -36%) rotate(11deg);
+  background:
+    linear-gradient(135deg, transparent 48%, rgba(46,38,64,.08) 49% 50%, transparent 51%),
+    linear-gradient(45deg, transparent 48%, rgba(46,38,64,.08) 49% 50%, transparent 51%),
+    linear-gradient(135deg, #FBEFC7, #F4DE8C);
+}
+
+/* "Save $10" sticker */
+.bundle__sticker {
+  position: absolute;
+  top: 6%; right: 4%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 86px; height: 86px;
+  border-radius: 50%;
+  background: var(--plum);
+  color: #fff;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.05rem;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  transform: rotate(-12deg);
+  border: 3px solid #fff;
+}
+
+@media (max-width: 860px) {
+  .bundle__card { grid-template-columns: 1fr; }
+  .bundle__visual { min-height: 260px; max-width: 420px; margin: 0 auto; order: -1; }
+  .bundle__sticker { width: 72px; height: 72px; font-size: .95rem; }
+}

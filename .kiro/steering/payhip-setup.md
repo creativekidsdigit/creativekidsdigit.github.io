@@ -14,8 +14,18 @@ in the nav opens the Payhip cart overlay.
 
 Payhip then auto-binds to any element with these classes:
 
-- `class="payhip-buy-button" data-product="PRODUCT_ID"` → opens checkout for that product
-- `class="payhip-cart-button"` → opens the multi-item cart overlay
+- `class="payhip-buy-button" data-product="PRODUCT_ID"` → adds to cart (overlay)
+- `class="payhip-buy-button" data-product="PRODUCT_ID" data-cart="off"` → skips cart, goes straight to checkout (the **Buy now** button)
+- `class="payhip-cart-button"` → opens the multi-item cart overlay (the nav cart)
+
+Each product card renders both buttons side-by-side:
+
+```html
+<div class="product__buttons">
+  <a class="payhip-buy-button btn btn--soft btn--sm"  data-product="ID">+ Cart</a>
+  <a class="payhip-buy-button btn btn--primary btn--sm" data-product="ID" data-cart="off">Buy now</a>
+</div>
+```
 
 The `href="https://payhip.com/b/PRODUCT_ID"` on each button is the **fallback
 link** Payhip uses if JS is blocked — it sends users to Payhip's hosted
@@ -24,15 +34,20 @@ product page. Same `PRODUCT_ID` everywhere.
 ## Replacing the placeholder IDs
 
 Each product currently uses a **named placeholder** (e.g. `FOCUS_FIDGET_BUNDLE`).
+Each product appears **4 times** in `index.html` (twice per button × 2 buttons:
+Add-to-cart and Buy-now). A single find/replace updates all of them.
+
 After you create the product in Payhip:
 
 1. Go to your Payhip dashboard → Products → click the product
 2. Find the **Product link**, e.g. `https://payhip.com/b/aBcD3` — the part
    after `/b/` is your real Product ID (e.g. `aBcD3`)
 3. In `index.html`, find/replace the placeholder with the real ID
-4. Make sure to update **both** the `href` and the `data-product` attribute
-   for that button (or just find/replace the placeholder string —
-   they're identical in both places)
+
+> **Bundle tip:** For the Calm Starter Bundle, create a new Payhip product
+> priced at $31 and attach all 4 included PDFs (Focus & Fidget Bundle, Calm
+> Morning Routine, Quiet Garden Pages, Mini Forest Friends). Payhip lets one
+> product deliver multiple files.
 
 ## Placeholder → Product mapping
 
@@ -50,6 +65,7 @@ After you create the product in Payhip:
 | `MINI_FOREST_FRIENDS`     | Papercraft  | Mini Forest Friends              | $6    |
 | `TINY_TOWN_HOUSES`        | Papercraft  | Tiny Town Paper Houses           | $10   |
 | `SEASONS_GARLAND`         | Papercraft  | Seasons Paper Garland Set        | $5    |
+| `CALM_STARTER_BUNDLE`     | Bundle      | The Calm Starter Bundle (4-pack) | $31   |
 
 ## Optional Payhip features you can turn on later
 
