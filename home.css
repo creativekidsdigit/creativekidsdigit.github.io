@@ -532,3 +532,117 @@
     padding: .35rem .65rem;
   }
 }
+
+
+
+/* =========================================================
+   Skip link (a11y)
+   ========================================================= */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  z-index: 1000;
+  background: var(--purple);
+  color: #fff;
+  padding: .7rem 1.1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: .9rem;
+  box-shadow: var(--shadow);
+  transition: top .2s ease;
+}
+.skip-link:focus {
+  top: 1rem;
+  outline: 3px solid var(--gold, #C8A85A);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   Sticky header — subtle shadow on scroll
+   ========================================================= */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(251, 248, 243, 0.92);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  transition: box-shadow .25s ease, background .25s ease;
+}
+.site-header.is-scrolled {
+  box-shadow: 0 4px 24px rgba(123, 96, 168, 0.08);
+  background: rgba(251, 248, 243, 0.98);
+}
+
+/* =========================================================
+   Back-to-top floating button
+   ========================================================= */
+.back-to-top {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 26px rgba(110, 87, 147, 0.35);
+  opacity: 0;
+  transform: translateY(8px) scale(.92);
+  transition: opacity .2s ease, transform .2s ease, background .2s ease;
+  z-index: 60;
+  cursor: pointer;
+}
+.back-to-top.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.back-to-top:hover { background: var(--purple-deep); }
+.back-to-top:focus-visible {
+  outline: 3px solid var(--gold, #C8A85A);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   Reveal on scroll
+   ========================================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .55s ease, transform .55s ease;
+  will-change: opacity, transform;
+}
+.reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger for grid children */
+.benefits-grid .benefit:nth-child(2) { transition-delay: .06s; }
+.benefits-grid .benefit:nth-child(3) { transition-delay: .12s; }
+.benefits-grid .benefit:nth-child(4) { transition-delay: .18s; }
+.benefits-grid .benefit:nth-child(5) { transition-delay: .24s; }
+.benefits-grid .benefit:nth-child(6) { transition-delay: .30s; }
+
+.lessons-grid .lesson-product:nth-child(2) { transition-delay: .06s; }
+.lessons-grid .lesson-product:nth-child(3) { transition-delay: .12s; }
+.lessons-grid .lesson-product:nth-child(4) { transition-delay: .18s; }
+.lessons-grid .lesson-product:nth-child(5) { transition-delay: .24s; }
+.lessons-grid .lesson-product:nth-child(6) { transition-delay: .30s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-revealed {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .back-to-top {
+    transition: none !important;
+  }
+  html { scroll-behavior: auto; }
+}
