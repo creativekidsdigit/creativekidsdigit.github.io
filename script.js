@@ -91,7 +91,9 @@
     '.method-item',
     '.lead-magnet',
     '.final-cta-home',
-    '.about'
+    '.about',
+    '.stat',
+    '.footer-trust'
   ];
   var revealTargets = document.querySelectorAll(revealSelectors.join(','));
 
@@ -132,5 +134,59 @@
       });
     }, { threshold: 0.4, rootMargin: '-30% 0px -50% 0px' });
     sections.forEach(function (s) { navObserver.observe(s.section); });
+  }
+
+  // ---------- Mobile sticky CTA ----------
+  var mobileCta = document.querySelector('.mobile-cta');
+  var hero = document.querySelector('.hero');
+  if (mobileCta && hero) {
+    mobileCta.hidden = false;
+    var setMobileCta = function () {
+      var heroBottom = hero.getBoundingClientRect().bottom;
+      var nearFooter = false;
+      var footer = document.querySelector('.site-footer');
+      if (footer) {
+        var fr = footer.getBoundingClientRect();
+        nearFooter = fr.top < (window.innerHeight - 60);
+      }
+      var show = heroBottom < 60 && !nearFooter;
+      mobileCta.classList.toggle('is-visible', show);
+    };
+    setMobileCta();
+    window.addEventListener('scroll', setMobileCta, { passive: true });
+    window.addEventListener('resize', setMobileCta);
+  }
+
+  // ---------- Animated count-up for the stats strip ----------
+  var counters = document.querySelectorAll('[data-count-to]');
+  if (counters.length) {
+    var animate = function (el) {
+      var target = parseInt(el.getAttribute('data-count-to'), 10);
+      if (isNaN(target)) return;
+      if (prefersReducedMotion) { el.textContent = String(target); return; }
+      var start = null;
+      var duration = 1100;
+      var step = function (ts) {
+        if (!start) start = ts;
+        var progress = Math.min((ts - start) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = String(Math.round(target * eased));
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    if ('IntersectionObserver' in window) {
+      var statObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            animate(entry.target);
+            statObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.4 });
+      counters.forEach(function (el) { statObserver.observe(el); });
+    } else {
+      counters.forEach(animate);
+    }
   }
 })();
