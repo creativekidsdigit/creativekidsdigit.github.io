@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /.git/
+Disallow: /.kiro/
+
+Sitemap: https://creativekidsdigit.github.io/sitemap.xml
