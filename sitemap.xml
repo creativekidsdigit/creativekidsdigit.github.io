@@ -1,68 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Homepage -->
   <url>
     <loc>https://creativekidsdigit.github.io/</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!-- Main pages -->
   <url>
     <loc>https://creativekidsdigit.github.io/teachers.html</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://creativekidsdigit.github.io/products/</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <!-- Blog -->
   <url>
-    <loc>https://creativekidsdigit.github.io/products/1as-getting-through-reading.html</loc>
+    <loc>https://creativekidsdigit.github.io/blog/adhd-after-school-meltdowns-homework-help.html</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
+
+  <!-- ADHD Toolkit Products (high priority) -->
   <url>
-    <loc>https://creativekidsdigit.github.io/products/2as-make-peace-grammar.html</loc>
+    <loc>https://creativekidsdigit.github.io/products/adhd-after-school-reset-toolkit.html</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://creativekidsdigit.github.io/products/2as-schools-oral-expression.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://creativekidsdigit.github.io/products/3as-ancient-civilizations-written-expression.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://creativekidsdigit.github.io/products/3as-ethics-in-business-listening.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://creativekidsdigit.github.io/products/bac-reading-writing-mock-paper-1.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://creativekidsdigit.github.io/products/adhd-homework-toolkit.html</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://creativekidsdigit.github.io/products/adhd-morning-routine-toolkit.html</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://creativekidsdigit.github.io/products/adhd-emotional-regulation-toolkit.html</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <!-- Lesson Plan Products -->
+  <url>
+    <loc>https://creativekidsdigit.github.io/products/1as-getting-through-reading.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://creativekidsdigit.github.io/products/2as-make-peace-grammar.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://creativekidsdigit.github.io/products/2as-schools-oral-expression.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://creativekidsdigit.github.io/products/3as-ancient-civilizations-written-expression.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://creativekidsdigit.github.io/products/3as-ethics-in-business-listening.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://creativekidsdigit.github.io/products/bac-reading-writing-mock-paper-1.html</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Utility pages (low priority) -->
   <url>
     <loc>https://creativekidsdigit.github.io/thank-you.html</loc>
+    <lastmod>2026-05-24</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.2</priority>
   </url>
+
 </urlset>
