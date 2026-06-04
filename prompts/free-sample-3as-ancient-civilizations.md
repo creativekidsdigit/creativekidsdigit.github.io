@@ -188,3 +188,70 @@ If &gt; 30% of pupils fail the production task:
 ---
 
 > *This is a Fearless Creations free sample. The full library of premium lesson plans for 1AS, 2AS, 3AS and BAC preparation is available at* **creativekidsdigit.github.io**.
+
+---
+
+## Appendix &mdash; Pupil Handout
+
+> **Photocopy and distribute one per pupil or per pair.** ~ 245 words &middot; B1+ CEFR &middot; adapted for 3AS *New Prospects*. The line numbers below are the same line numbers referenced in the **Practice (intensive / inference)** stage and in the *Expected Pupils' Answers* (line 12, lines 18&ndash;19).
+
+### *The Lost Civilization of the Aztecs*
+
+<ol class="reading-lines">
+<li>In the heart of central Mexico, around the great city of Tenochtitl&aacute;n,</li>
+<li>there once flourished one of the most fascinating civilizations of the</li>
+<li>Americas &mdash; the Aztec empire. Founded in the early 14th century, the Aztecs</li>
+<li>built their capital on a small island in Lake Texcoco, and within two</li>
+<li>hundred years they transformed it into a vast metropolis of palaces and markets.</li>
+<li>At the peak of their power, between the 14th and the 16th century, the Aztecs</li>
+<li>ruled over millions of people. Their society was highly organized, with priests,</li>
+<li>warriors, farmers and skilled artisans. They were remarkable engineers and</li>
+<li>scientists who left a deep mark on the region. They invented floating gardens</li>
+<li>called <em>chinampas</em> to grow maize and vegetables directly on the surface of</li>
+<li>the lake; they followed an accurate solar calendar and observed the stars;</li>
+<li>they used a pictographic writing system to record laws, history and religion;</li>
+<li>and they raised monumental architecture &mdash; pyramids, plazas and stone</li>
+<li>sculptures &mdash; that still amaze visitors who walk among the ruins today.</li>
+<li>Yet this brilliant civilization did not last. In 1519, Spanish conquistadors</li>
+<li>led by Hern&aacute;n Cort&eacute;s arrived on the eastern coast and marched towards</li>
+<li>Tenochtitl&aacute;n. After two years of fierce resistance, weakened by new diseases</li>
+<li>brought from Europe, the city fell to a violent invasion that brought a tragic</li>
+<li>end to centuries of Aztec rule. Temples were destroyed, ancient books were</li>
+<li>burned, and a unique culture experienced a rapid decline.</li>
+<li>The collapse of the Aztec empire reminds us that no civilization, however</li>
+<li>powerful, is eternal. Just as Algerians honour the memory of Numidia and</li>
+<li>Carthage in their own land, the modern world owes it to itself to study,</li>
+<li>respect and protect what remains of these ancient peoples everywhere &mdash; for</li>
+<li>each one is part of the shared heritage of humanity.</li>
+</ol>
+
+---
+
+### Tasks
+
+**1. Skim for gist (3 min).** What is the text mainly about?
+&nbsp;&nbsp;&nbsp;&nbsp;(a) The geography of Mexico.
+&nbsp;&nbsp;&nbsp;&nbsp;(b) The Aztec civilization and its decline.
+&nbsp;&nbsp;&nbsp;&nbsp;(c) Spanish exploration in the 16th century.
+
+**2. Scan for specific information (12 min).**
+
+1. Where did the Aztecs live?
+2. When was their empire at its peak?
+3. Name **two** Aztec achievements.
+4. Who conquered them?
+5. Find a synonym for the word **fall** in the text.
+
+**3. Intensive reading &amp; inference (10 min).**
+
+- True or false? Justify with a line reference.
+&nbsp;&nbsp;a. *"The Aztecs had a writing system."*
+&nbsp;&nbsp;b. *"The conquest was peaceful."*
+- Why does the writer use the word **tragic** in line 18?
+
+**4. Written reaction (15 min).** In 4&ndash;5 sentences, answer:
+*What lesson can today's world learn from the fall of the Aztec empire?*
+
+> *Sentence starters:* In my opinion&hellip; / The text shows that&hellip; / I think this is important because&hellip;
+
+**Mini-glossary** *(for support)*: *civilization* = a developed society; *empire* = a large state ruled by one government; *ruins* = what remains of old buildings; *decline* = a slow fall; *conquistador* = a Spanish soldier-explorer of the 16th century.
