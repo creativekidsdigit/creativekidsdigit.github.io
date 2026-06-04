@@ -1,0 +1,60 @@
+<!--
+  ANALYTICS TRACKING SNIPPET
+  Paste this into the <head> of every HTML page (homepage, all blog posts,
+  all product pages, teachers.html, products/index.html, thank-you.html)
+
+  Replace the two placeholders:
+    G-XXXXXXXXXX → your Google Analytics 4 Measurement ID
+    YOUR_PINTEREST_TAG_ID → your Pinterest tag ID (13-digit number)
+
+  Do NOT add this to:
+    - 404.html (already fine without it)
+    - google9c014b66081fb050.html (Google verification, leave alone)
+-->
+
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+
+  // Track Buy button clicks as conversions
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a[href*="payhip.com"]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        gtag('event', 'buy_button_click', {
+          'event_category': 'ecommerce',
+          'event_label': this.getAttribute('data-payhip-product') || 'storefront',
+          'value': 1
+        });
+      });
+    });
+
+    // Track email form submissions
+    document.querySelectorAll('form[action*="convertkit"], form[action*="mailchimp"], form[id*="leadForm"], form[id*="newsletterForm"]').forEach(function(form) {
+      form.addEventListener('submit', function() {
+        gtag('event', 'email_signup', {
+          'event_category': 'engagement',
+          'event_label': this.id || 'newsletter'
+        });
+      });
+    });
+  });
+</script>
+
+<!-- Pinterest Tag -->
+<script>
+!function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
+pintrk('load', 'YOUR_PINTEREST_TAG_ID');
+pintrk('page');
+</script>
+<noscript>
+  <img height="1" width="1" style="display:none" alt="" src="https://ct.pinterest.com/v3/?event=init&tid=YOUR_PINTEREST_TAG_ID&noscript=1" />
+</noscript>
+
+<!-- End Analytics -->
