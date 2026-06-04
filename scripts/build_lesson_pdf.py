@@ -222,6 +222,68 @@ html, body {
     margin: 18pt 0;
 }
 
+/* ---------- Pupil-handout appendix ---------- */
+/* The build script tags the appendix h2 with class="appendix-start" so the
+   handout begins on a fresh sheet teachers can photocopy independently. */
+.appendix-start {
+    page-break-before: always;
+    break-before: page;
+}
+.appendix-start::before {
+    content: "Pupil handout";
+    display: block;
+    width: max-content;
+    background: #9B7FBF;
+    color: #FBF8F3;
+    font-family: 'Inter', sans-serif;
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 10pt;
+}
+
+.reading-lines {
+    list-style: none;
+    counter-reset: rline;
+    margin: 8pt 0 14pt 0;
+    padding: 14pt 16pt 14pt 18pt;
+    background: #FBF8F3;
+    border: 1px solid #E8D9F0;
+    border-left: 4px solid #9B7FBF;
+    border-radius: 0 6pt 6pt 0;
+    font-family: 'Fraunces', 'Georgia', serif;
+    font-size: 10.5pt;
+    line-height: 1.85;
+    color: #2b2538;
+}
+.reading-lines li {
+    counter-increment: rline;
+    position: relative;
+    padding-left: 30pt;
+    margin: 0;
+    page-break-inside: avoid;
+}
+.reading-lines li::before {
+    content: counter(rline);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 22pt;
+    text-align: right;
+    font-family: 'Inter', sans-serif;
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: #9B7FBF;
+    padding-top: 4pt;
+}
+.reading-lines li em {
+    font-style: italic;
+    color: #5C5374;
+}
+
 /* Tables */
 .content table {
     width: 100%;
@@ -323,6 +385,14 @@ def main() -> int:
     body_html = markdown.markdown(
         body_md,
         extensions=["tables", "sane_lists", "smarty"],
+    )
+
+    # Mark the appendix heading so the print stylesheet can force a page break
+    # before it (one fresh A4 sheet = the photocopiable pupil handout).
+    body_html = body_html.replace(
+        "<h2>Appendix",
+        '<h2 class="appendix-start">Appendix',
+        1,
     )
 
     full_html = f"""<!DOCTYPE html>
