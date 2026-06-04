@@ -3,4 +3,18 @@ Allow: /
 Disallow: /.git/
 Disallow: /.kiro/
 
+# Source content + internal planning. These are also excluded from the
+# Jekyll build via _config.yml, so the URLs already return 404 - this is
+# belt-and-braces in case anything is cached or referenced elsewhere.
+Disallow: /prompts/
+Disallow: /digital-products/
+Disallow: /templates/
+Disallow: /scripts/
+
+# Lead-magnet PDFs are gated behind the email signup. The links remain
+# fetchable for subscribers (and for ConvertKit delivery), we just don't
+# want search engines indexing the unguessable URL and letting visitors
+# skip the funnel.
+Disallow: /downloads/
+
 Sitemap: https://creativekidsdigit.github.io/sitemap.xml

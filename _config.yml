@@ -1,0 +1,41 @@
+# Fearless Creations - GitHub Pages config
+#
+# The site is plain HTML/CSS/JS - we are NOT using Jekyll templating. The only
+# reason this file exists is to control what GitHub Pages publishes from the
+# repo. Anything listed in `exclude` is dropped at build time, so the URLs
+# return 404 even if someone guesses them.
+#
+# Rule of thumb: the publishable artefact for paid or lead-magnet content is
+# the PDF in /downloads/. The source markdown that produces it must never be
+# accessible at creativekidsdigit.github.io.
+
+title: Fearless Creations
+url: https://creativekidsdigit.github.io
+
+# Disable the auto-generated /feed.xml etc. - we control SEO via sitemap.xml.
+plugins: []
+
+exclude:
+  # ---- Source content (full lesson plans, paid toolkits, templates) -------
+  # The publishable artefact for these is the PDF in /downloads/, never the
+  # markdown source. Hiding these from the live site is what keeps the full
+  # lesson + materials exclusive to subscribers / paying customers.
+  - prompts/
+  - digital-products/
+  - templates/
+
+  # ---- Tooling --------------------------------------------------------------
+  - scripts/
+
+  # ---- Internal business / planning / launch docs --------------------------
+  - BLOG_CONTENT_PLAN.md
+  - CONVERTKIT_SETUP.md
+  - DEPLOYMENT_REPORT.md
+  - IMPLEMENTATION_KIT.md
+  - LAUNCH_CHECKLIST.md
+  - PINTEREST_DEPLOYMENT_PACKAGE.md
+  - README.md
+
+  # ---- Misc -----------------------------------------------------------------
+  # Snippet meant to be embedded inside other pages, not navigable on its own.
+  - analytics-snippet.html
