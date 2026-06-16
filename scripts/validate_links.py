@@ -38,7 +38,15 @@ CLASS_RE = re.compile(r"\sclass\s*=\s*\"([^\"]*)\"", re.IGNORECASE)
 ID_RE = re.compile(r'\sid\s*=\s*"([^"]+)"', re.IGNORECASE)
 NAME_RE = re.compile(r'\sname\s*=\s*"([^"]+)"', re.IGNORECASE)
 
-HTML_FILES = sorted(p for p in ROOT.rglob("*.html") if ".git" not in p.parts)
+# Directories whose HTML is a self-contained client-side app (e.g. SPA hash
+# routes like #/lessons that this validator should not try to resolve as
+# in-page anchors).
+SKIP_DIRS = {"teacher-app"}
+
+HTML_FILES = sorted(
+    p for p in ROOT.rglob("*.html")
+    if ".git" not in p.parts and not any(part in SKIP_DIRS for part in p.parts)
+)
 
 errors = []
 warnings = []
