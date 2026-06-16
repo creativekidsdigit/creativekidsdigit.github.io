@@ -88,10 +88,88 @@
   <!-- Skip to content (accessibility) -->
   <a class="skip-link" href="#top">Skip to main content</a>
 
-  <!-- 1. Announcement -->
-  <div class="announcement" role="region" aria-label="Site announcement">
-    <p>New: 3AS BAC mock paper packs are live &mdash; instant download, marking key included.</p>
+  <!-- 1. Announcement / Launch Banner with Countdown -->
+  <div class="announcement announcement-launch" role="region" aria-label="Launch banner" data-deadline="2026-06-17T23:59:59Z">
+    <p>
+      <strong>Launch deal ends in <span class="countdown-display" aria-live="polite">--:--:--</span></strong>
+      &middot;
+      ADHD Homework Survival Toolkit at <strong>$4.99</strong>
+      <span style="text-decoration:line-through;opacity:.6;">$9 after</span>
+      &middot;
+      <a href="products/adhd-homework-toolkit.html" style="color:inherit;text-decoration:underline;font-weight:700;">Get it now &rarr;</a>
+    </p>
   </div>
+  <style>
+    .announcement-launch{background:linear-gradient(135deg,#E8A87C,#D88860)!important;color:#FBF8F3!important}
+    .announcement-launch a:hover{opacity:.85}
+    .countdown-display{font-variant-numeric:tabular-nums;font-weight:800;background:rgba(0,0,0,.18);padding:.1rem .45rem;border-radius:6px;margin:0 .15rem;display:inline-block;min-width:5.5em;text-align:center}
+  </style>
+  <script>
+    /* Launch-deal countdown. Edit data-deadline on .announcement-launch to extend the launch window.
+       After the deadline passes the banner hides itself client-side. */
+    (function(){
+      var banner = document.querySelector('.announcement-launch[data-deadline]');
+      if (!banner) return;
+      var display = banner.querySelector('.countdown-display');
+      if (!display) return;
+      var deadline = new Date(banner.dataset.deadline).getTime();
+      if (isNaN(deadline)) return;
+      function pad(n){ return (n<10?'0':'') + n; }
+      function tick(){
+        var diff = deadline - Date.now();
+        if (diff <= 0) {
+          display.textContent = '00:00:00';
+          banner.style.display = 'none';
+          return;
+        }
+        var h = Math.floor(diff / 3600000);
+        var m = Math.floor((diff % 3600000) / 60000);
+        var s = Math.floor((diff % 60000) / 1000);
+        display.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+      }
+      tick();
+      setInterval(tick, 1000);
+    })();
+  </script>
+
+  <!-- 1b. Free Lead Magnet: ADHD Mastery Workbook -->
+  <section id="free-adhd-workbook" class="lead-magnet-section" aria-labelledby="lm-heading">
+    <div class="container">
+      <div class="lm-grid">
+        <div class="lm-copy">
+          <span class="lm-eyebrow">FREE for ADHD parents</span>
+          <h2 id="lm-heading">The ADHD Mastery Workbook</h2>
+          <p>A free 12-page printable workbook: practical tools, parent scripts, and routine cards you can use tonight. No credit card &mdash; just your email.</p>
+          <p class="lm-microproof">Used by parents of ADHD kids ages 5&ndash;12.</p>
+        </div>
+        <form id="adhdLeadForm" class="lm-form" novalidate>
+          <label for="adhdLeadEmail" class="visually-hidden">Email address</label>
+          <input id="adhdLeadEmail" type="email" name="email" placeholder="your@email.com" required autocomplete="email" />
+          <input type="text" name="b_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" />
+          <button type="submit" class="btn btn-primary">Send me the workbook &rarr;</button>
+          <p id="adhdLeadMsg" class="lm-msg" role="status" aria-live="polite"></p>
+          <p class="lm-fineprint">No spam. Unsubscribe anytime. Workbook delivered via Payhip after signup.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+  <style>
+    .lead-magnet-section{background:linear-gradient(135deg,#FBF8F3,#FFF5E8);padding:2.25rem 1rem;border-bottom:1px solid #e8e0d4}
+    .lead-magnet-section .lm-grid{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:center}
+    .lead-magnet-section .lm-eyebrow{display:inline-block;background:#9B7FBF;color:#fff;font-size:.72rem;letter-spacing:.08em;padding:.25rem .6rem;border-radius:4px;font-weight:700;margin-bottom:.75rem;text-transform:uppercase}
+    .lead-magnet-section h2{font-family:'Fraunces',serif;font-size:1.65rem;color:#2d2d2d;margin:0 0 .55rem;line-height:1.2}
+    .lead-magnet-section p{color:#555;line-height:1.5;margin:0 0 .55rem;font-size:.97rem}
+    .lead-magnet-section .lm-microproof{font-size:.82rem;color:#777;font-style:italic;margin:.4rem 0 0}
+    .lead-magnet-section .lm-form{background:#fff;padding:1.25rem;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:.6rem;position:relative}
+    .lead-magnet-section .lm-form input[type=email]{padding:.85rem 1rem;border:1.5px solid #e0d6ee;border-radius:8px;font-size:1rem;font-family:inherit;width:100%}
+    .lead-magnet-section .lm-form input[type=email]:focus{outline:none;border-color:#9B7FBF;box-shadow:0 0 0 3px rgba(155,127,191,.15)}
+    .lead-magnet-section .lm-form button{padding:.85rem 1.25rem;width:100%}
+    .lead-magnet-section .lm-msg{margin:0;min-height:1em;font-size:.88rem;color:#555}
+    .lead-magnet-section .lm-msg.is-error{color:#c0392b}
+    .lead-magnet-section .lm-fineprint{font-size:.76rem;color:#888;margin:.2rem 0 0;line-height:1.4}
+    .lead-magnet-section .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+    @media (max-width:640px){.lead-magnet-section .lm-grid{grid-template-columns:1fr;gap:1.25rem}.lead-magnet-section h2{font-size:1.4rem}}
+  </style>
 
   <!-- 2. Navigation -->
   <header class="site-header">

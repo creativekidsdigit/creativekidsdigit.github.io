@@ -26,7 +26,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Lint (placeholder)
-        run: |
-          echo "passed"
-          exit 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate internal links and Payhip allow-list
+        run: python3 scripts/validate_links.py

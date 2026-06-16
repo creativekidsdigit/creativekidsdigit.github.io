@@ -20,9 +20,17 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Canonical Payhip URLs (the only ones that should appear in CTAs)
 PAYHIP_ALLOW = {
+    # Storefront fallback (legitimate landing for products visible on the storefront)
     "https://payhip.com/creativekidsdigit",
-    "https://payhip.com/b/i2x1W",
-    "https://payhip.com/b/iCIH8",
+    # Direct product URLs (verified live via storefront enumeration on 2026-06-16)
+    "https://payhip.com/b/i2x1W",  # ADHD Homework Survival Toolkit ($4.99)
+    "https://payhip.com/b/iCIH8",  # Emotional Regulation Tools ($4.99)
+    "https://payhip.com/b/qJF2t",  # My Calm Corner: Mindfulness Coloring ($9.99)
+    "https://payhip.com/b/uxvcM",  # Pencil Tracing Booklet ($2.54)
+    "https://payhip.com/b/0egwS",  # Shapes Activity Book ($2.99)
+    "https://payhip.com/b/05NYg",  # Printable Easter Card ($2.25)
+    "https://payhip.com/b/dRC8r",  # Printable Easter Cards multi ($2.00)
+    "https://payhip.com/b/vsdjE",  # ADHD Mastery Workbook (FREE — lead magnet)
 }
 
 A_TAG = re.compile(r"<a\b[^>]*\shref\s*=\s*\"([^\"]+)\"[^>]*>", re.IGNORECASE)
