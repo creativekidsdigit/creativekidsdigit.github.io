@@ -27,8 +27,9 @@
 
   // ---------- 1. CONFIG (edit these two values) ----------
   var CONVERTKIT = {
-    leadMagnetFormId:  '',  // e.g. '8123456'  → "Homepage Free Sample"
-    newsletterFormId:  '',  // e.g. '8123457'  → "Newsletter — Teachers"
+    leadMagnetFormId:        '',  // e.g. '8123456'  → "Homepage Free Sample" (3AS lesson plan)
+    newsletterFormId:        '',  // e.g. '8123457'  → "Newsletter — Teachers"
+    adhdLeadMagnetFormId:    '',  // e.g. '8123458'  → "ADHD Mastery Workbook" (homepage hero form)
     // Optional: a public API key only used as a last-resort fallback path.
     publicApiKey:      ''
   };
@@ -107,6 +108,12 @@
       setMessage(msg, opts.pendingMsg, false);
 
       var ckFormId = opts.ckFormId;
+      var maybeRedirect = function () {
+        if (opts.redirectUrl) {
+          // Give the success message ~800ms to be seen before navigating away.
+          setTimeout(function () { window.location.href = opts.redirectUrl; }, 800);
+        }
+      };
       var doneOk = function () {
         setMessage(msg, opts.successMsg, false);
         form.reset();
@@ -120,6 +127,7 @@
         if (window.fbq) {
           window.fbq('track', 'Lead', { content_name: opts.source });
         }
+        maybeRedirect();
       };
       var doneFail = function () {
         // Fallback: still tell the user something positive but log locally.
@@ -130,6 +138,9 @@
         });
         setMessage(msg, opts.successMsg, false);
         form.reset();
+        // Still redirect on CK failure — Payhip captures the email on its end
+        // when the user accesses the free product, so the lead isn't lost.
+        maybeRedirect();
       };
       var restoreBtn = function () {
         if (submitBtn) {
@@ -172,5 +183,17 @@
     source: 'newsletter-general',
     pendingMsg: 'Subscribing\u2026',
     successMsg: 'Welcome aboard! New lesson plans will land in your inbox monthly.'
+  });
+
+  // Homepage ADHD Mastery Workbook — captures email, then redirects to the
+  // free Payhip product so the customer can grab the workbook immediately.
+  bindForm({
+    formId: 'adhdLeadForm',
+    msgId: 'adhdLeadMsg',
+    ckFormId: CONVERTKIT.adhdLeadMagnetFormId,
+    source: 'lead-magnet-adhd-mastery-workbook',
+    pendingMsg: 'Sending your free workbook\u2026',
+    successMsg: 'Sent! Redirecting you to your free download\u2026',
+    redirectUrl: 'https://payhip.com/b/vsdjE'
   });
 })();
