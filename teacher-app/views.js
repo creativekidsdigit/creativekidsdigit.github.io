@@ -40,6 +40,29 @@ window.Views = (function () {
 
   function go(hash) { window.location.hash = hash; }
 
+  // Toast: a small confirmation that disappears after a moment.
+  // Used for save actions so the user gets visible feedback without an alert dialog.
+  function toast(msg, kind) {
+    var holder = document.getElementById('toast-holder');
+    if (!holder) {
+      holder = document.createElement('div');
+      holder.id = 'toast-holder';
+      document.body.appendChild(holder);
+    }
+    var el = document.createElement('div');
+    el.className = 'toast' + (kind ? ' toast-' + kind : '');
+    el.textContent = msg;
+    holder.appendChild(el);
+    // Trigger CSS transition on next frame.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { el.classList.add('is-visible'); });
+    });
+    setTimeout(function () {
+      el.classList.remove('is-visible');
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+    }, 2400);
+  }
+
   // =========================================================================
   // Dashboard
   // =========================================================================
@@ -47,46 +70,72 @@ window.Views = (function () {
     var lessons = Storage.getLessons();
     var weeks = Storage.getWeeks();
     var recentLessons = lessons.slice(0, 5);
+    var isFirstTime = lessons.length === 0 && weeks.length === 0;
 
-    container.innerHTML = '' +
-      '<h1>Welcome to your Lesson Planner</h1>' +
-      '<p class="muted">A simple, distraction-free planner for novice teachers. Everything is saved in your browser.</p>' +
+    var html = '' +
+      '<section class="hero">' +
+        '<h1 class="hero-title">Lesson Planner for novice teachers</h1>' +
+        '<p class="hero-lede">Plan a lesson in 10 minutes. Find an activity in 30 seconds. Get a script for any classroom problem in one click. Built for first- and second-year teachers who don&rsquo;t have time to overthink it.</p>' +
+      '</section>';
 
-      '<div class="card-row" style="margin-top:1.5rem;">' +
-        '<a class="tile" href="#/lessons/new"><span class="tile-icon">📝</span><h3>New lesson plan</h3><p>Build a 45-minute lesson, step by step.</p></a>' +
-        '<a class="tile" href="#/weeks/new"><span class="tile-icon">📅</span><h3>Plan your week</h3><p>One grid for Monday through Friday.</p></a>' +
-        '<a class="tile" href="#/activities"><span class="tile-icon">🎯</span><h3>Find an activity</h3><p>15 ready-to-use classroom activities.</p></a>' +
-        '<a class="tile" href="#/problems"><span class="tile-icon">🚨</span><h3>Solve a problem</h3><p>Scripts for behavior, focus, and bad days.</p></a>' +
-      '</div>' +
+    if (isFirstTime) {
+      html += '' +
+        '<aside class="onboarding-banner" role="region" aria-label="Getting started">' +
+          '<div class="onboarding-banner-icon" aria-hidden="true">👋</div>' +
+          '<div class="onboarding-banner-body">' +
+            '<h2>New here? Start in 3 steps.</h2>' +
+            '<ol class="onboarding-steps">' +
+              '<li><strong>Build a lesson plan</strong> &mdash; the wizard walks you through 8 short steps. About 10 minutes the first time.</li>' +
+              '<li><strong>Plan your week</strong> &mdash; one Mon&ndash;Fri grid. Do this on Sunday in 30 minutes and save 5 hours during the week.</li>' +
+              '<li><strong>Use Activities &amp; Problem Solver</strong> &mdash; 15 ready activities and 10 scripted classroom responses. Free, anytime.</li>' +
+            '</ol>' +
+            '<a href="#/lessons/new" class="btn btn-accent">Build my first lesson &rarr;</a>' +
+          '</div>' +
+        '</aside>';
+    }
 
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2rem;">' +
-        '<section>' +
-          '<h2>Recent lesson plans</h2>' +
-          (recentLessons.length === 0
-            ? '<div class="empty-state"><p class="muted">No lesson plans yet. <a href="#/lessons/new">Create your first.</a></p></div>'
-            : recentLessons.map(function (l) {
-                return '<div class="list-item">' +
-                  '<div class="list-item-main">' +
-                    '<div class="list-item-title"><a href="#/lessons/' + l.id + '">' + (escape(l.topic) || '<em>(untitled)</em>') + '</a></div>' +
-                    '<div class="list-item-meta">' + escape(l.className || '—') + ' · ' + formatDate(l.date) + '</div>' +
-                  '</div>' +
-                '</div>';
-              }).join('')) +
-        '</section>' +
-        '<section>' +
-          '<h2>Saved weeks</h2>' +
-          (weeks.length === 0
-            ? '<div class="empty-state"><p class="muted">No weeks yet. <a href="#/weeks/new">Plan your first week.</a></p></div>'
-            : weeks.slice(0, 5).map(function (w) {
-                return '<div class="list-item">' +
-                  '<div class="list-item-main">' +
-                    '<div class="list-item-title"><a href="#/weeks/' + w.id + '">Week of ' + formatDate(w.startDate) + '</a></div>' +
-                    '<div class="list-item-meta">' + escape(w.className || '—') + '</div>' +
-                  '</div>' +
-                '</div>';
-              }).join('')) +
-        '</section>' +
+    html += '' +
+      '<h2 class="section-title">' + (isFirstTime ? 'Or jump in directly' : 'What would you like to do?') + '</h2>' +
+      '<div class="card-row">' +
+        '<a class="tile" href="#/lessons/new"><span class="tile-icon" aria-hidden="true">📝</span><h3>New lesson plan</h3><p>Build a 45-minute lesson, step by step.</p></a>' +
+        '<a class="tile" href="#/weeks/new"><span class="tile-icon" aria-hidden="true">📅</span><h3>Plan your week</h3><p>One grid for Monday through Friday.</p></a>' +
+        '<a class="tile" href="#/activities"><span class="tile-icon" aria-hidden="true">🎯</span><h3>Find an activity</h3><p>15 ready-to-use classroom activities.</p></a>' +
+        '<a class="tile" href="#/problems"><span class="tile-icon" aria-hidden="true">🚨</span><h3>Solve a problem</h3><p>Scripts for behavior, focus, and bad days.</p></a>' +
       '</div>';
+
+    if (!isFirstTime) {
+      html += '' +
+        '<div class="dashboard-grid">' +
+          '<section>' +
+            '<h2 class="section-title">Recent lesson plans</h2>' +
+            (recentLessons.length === 0
+              ? '<div class="empty-state empty-state-small"><p class="muted">No lesson plans yet. <a href="#/lessons/new">Create your first.</a></p></div>'
+              : recentLessons.map(function (l) {
+                  return '<div class="list-item">' +
+                    '<div class="list-item-main">' +
+                      '<div class="list-item-title"><a href="#/lessons/' + l.id + '">' + (escape(l.topic) || '<em>(untitled)</em>') + '</a></div>' +
+                      '<div class="list-item-meta">' + escape(l.className || '—') + ' · ' + formatDate(l.date) + '</div>' +
+                    '</div>' +
+                  '</div>';
+                }).join('')) +
+          '</section>' +
+          '<section>' +
+            '<h2 class="section-title">Saved weeks</h2>' +
+            (weeks.length === 0
+              ? '<div class="empty-state empty-state-small"><p class="muted">No weeks yet. <a href="#/weeks/new">Plan your first week.</a></p></div>'
+              : weeks.slice(0, 5).map(function (w) {
+                  return '<div class="list-item">' +
+                    '<div class="list-item-main">' +
+                      '<div class="list-item-title"><a href="#/weeks/' + w.id + '">Week of ' + formatDate(w.startDate) + '</a></div>' +
+                      '<div class="list-item-meta">' + escape(w.className || '—') + '</div>' +
+                    '</div>' +
+                  '</div>';
+                }).join('')) +
+          '</section>' +
+        '</div>';
+    }
+
+    container.innerHTML = html;
   }
 
   // =========================================================================
@@ -99,11 +148,13 @@ window.Views = (function () {
         '<h1>Lesson Plans</h1>' +
         '<div class="page-actions"><a href="#/lessons/new" class="btn">+ New lesson plan</a></div>' +
       '</div>' +
+      '<p class="page-subtitle">Build, view, edit, and download lesson plans. Saved in your browser only.</p>' +
       (lessons.length === 0
         ? '<div class="empty-state">' +
             '<h3>No lesson plans yet</h3>' +
-            '<p>Click <a href="#/lessons/new">+ New lesson plan</a> to build your first one.</p>' +
-            '<p class="muted">It takes about 10 minutes the first time. After that, 5.</p>' +
+            '<p>Build your first one &mdash; it takes about 10 minutes the first time.</p>' +
+            '<p class="muted" style="margin-top:.5rem;">After that, planning a lesson takes around 5 minutes.</p>' +
+            '<a href="#/lessons/new" class="btn btn-accent" style="margin-top:1rem;">+ Build my first lesson plan</a>' +
           '</div>'
         : '<div class="lessons-list">' + lessons.map(function (l) {
             return '<div class="list-item">' +
@@ -324,6 +375,7 @@ window.Views = (function () {
       on('#saveBtn', 'click', function () {
         collectStep();
         var saved = Storage.saveLesson(lesson);
+        toast('Lesson plan saved.', 'success');
         go('#/lessons/' + saved.id);
       });
     }
@@ -442,7 +494,7 @@ window.Views = (function () {
         '<div class="page-actions btn-row">' +
           '<a href="#/lessons" class="btn btn-soft">← All lessons</a>' +
           '<a href="#/lessons/' + lesson.id + '/edit" class="btn btn-soft">Edit</a>' +
-          '<button class="btn btn-accent" id="printThis">🖨 Print / PDF</button>' +
+          '<button class="btn btn-accent" id="printThis" title="Opens print dialog. In the dialog, choose &quot;Save as PDF&quot; as the destination.">📄 Download as PDF</button>' +
         '</div>' +
       '</div>' +
       '<h1 class="print-only" style="display:none;">' + (escape(lesson.topic) || 'Lesson plan') + '</h1>' +
@@ -460,11 +512,13 @@ window.Views = (function () {
         '<h1>Weekly Planner</h1>' +
         '<div class="page-actions"><a href="#/weeks/new" class="btn">+ New week</a></div>' +
       '</div>' +
+      '<p class="page-subtitle">One Mon&ndash;Fri grid per week. Plan on Sunday in 30 minutes; save 5 hours during the week.</p>' +
       (weeks.length === 0
         ? '<div class="empty-state">' +
             '<h3>No weeks planned yet</h3>' +
-            '<p>Click <a href="#/weeks/new">+ New week</a> to plan Monday through Friday on one page.</p>' +
-            '<p class="muted">Recommended: do this on Sunday for 30 minutes. Saves you 5 hours during the week.</p>' +
+            '<p>Plan a whole week on one page in 30 minutes.</p>' +
+            '<p class="muted" style="margin-top:.5rem;">Recommended ritual: Sunday evening. Same time, same place, same coffee.</p>' +
+            '<a href="#/weeks/new" class="btn btn-accent" style="margin-top:1rem;">+ Plan my first week</a>' +
           '</div>'
         : weeks.map(function (w) {
             return '<div class="list-item">' +
@@ -523,7 +577,7 @@ window.Views = (function () {
           '<div class="page-actions btn-row">' +
             '<a href="#/weeks" class="btn btn-soft">← All weeks</a>' +
             '<button class="btn" id="saveWeek">💾 Save</button>' +
-            '<button class="btn btn-accent" id="printWeek">🖨 Print / PDF</button>' +
+            '<button class="btn btn-accent" id="printWeek" title="Opens print dialog. In the dialog, choose &quot;Save as PDF&quot; as the destination.">📄 Download as PDF</button>' +
           '</div>' +
         '</div>';
     }
@@ -603,7 +657,7 @@ window.Views = (function () {
       collect();
       var saved = Storage.saveWeek(week);
       week.id = saved.id;
-      alert('Week saved.');
+      toast('Week saved.', 'success');
       go('#/weeks/' + saved.id);
     });
     on('#printWeek', 'click', function () { collect(); window.print(); });
@@ -630,7 +684,7 @@ window.Views = (function () {
 
       container.innerHTML = '' +
         '<div class="page-head"><h1>Activities</h1></div>' +
-        '<p class="muted">15 ready-to-use classroom activities. Click any one for full details.</p>' +
+        '<p class="page-subtitle">15 ready-to-use classroom activities. Filter by time, group, or purpose. Click any card for full details, materials, and the common mistake new teachers make.</p>' +
         '<div class="activity-filters no-print">' +
           '<div class="filter-group"><label>Search</label><input type="text" id="af_q" value="' + escape(state.q) + '" placeholder="e.g. exit ticket"></div>' +
           '<div class="filter-group"><label>Time</label><select id="af_time">' +
@@ -703,7 +757,7 @@ window.Views = (function () {
     container.innerHTML = '' +
       '<div class="page-head no-print">' +
         '<a href="#/activities" class="btn btn-soft">← Back to activities</a>' +
-        '<div class="page-actions"><button class="btn btn-soft" id="printActivity">🖨 Print / PDF</button></div>' +
+        '<div class="page-actions"><button class="btn btn-soft" id="printActivity" title="Opens print dialog. In the dialog, choose &quot;Save as PDF&quot; as the destination.">📄 Download as PDF</button></div>' +
       '</div>' +
       '<div class="activity-detail card">' +
         '<h2>' + escape(a.name) + '</h2>' +
@@ -732,7 +786,7 @@ window.Views = (function () {
   function problemsList(container) {
     container.innerHTML = '' +
       '<div class="page-head"><h1>Problem Solver</h1></div>' +
-      '<p class="muted">Pick the situation. Get one specific script to use right now.</p>' +
+      '<p class="page-subtitle">Pick the situation. Get one specific script you can use right now. Each problem covers what NOT to say, what to say instead, and what to do next.</p>' +
       '<div class="problem-list">' + PROBLEMS.map(function (p) {
         return '<div class="problem-card" data-id="' + p.id + '">' +
           '<h3>' + escape(p.title) + '</h3>' +
@@ -767,7 +821,7 @@ window.Views = (function () {
     container.innerHTML = '' +
       '<div class="page-head no-print">' +
         '<a href="#/problems" class="btn btn-soft">← Back to problem solver</a>' +
-        '<div class="page-actions"><button class="btn btn-soft" id="printProblem">🖨 Print / PDF</button></div>' +
+        '<div class="page-actions"><button class="btn btn-soft" id="printProblem" title="Opens print dialog. In the dialog, choose &quot;Save as PDF&quot; as the destination.">📄 Download as PDF</button></div>' +
       '</div>' +
       '<div class="problem-detail">' +
         '<h1>' + escape(p.title) + '</h1>' +

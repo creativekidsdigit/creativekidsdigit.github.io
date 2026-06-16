@@ -600,3 +600,146 @@ textarea { resize: vertical; min-height: 80px; }
   a { color: black; text-decoration: none; }
   @page { margin: 1.5cm; }
 }
+
+
+/* =========================================================================
+   Polish: hero, onboarding banner, page subtitles, dashboard recents,
+   toast notifications. Layered on top of the base styles above.
+   ========================================================================= */
+
+/* ----- Hero / value prop on the dashboard ----- */
+.hero {
+  margin: 0 0 1.5rem;
+  padding: 2.25rem 1.75rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(232,168,124,.18), transparent 60%),
+    linear-gradient(135deg, #FFF5E8 0%, #FFE4D1 100%);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+.hero-title {
+  margin: 0 0 .65rem;
+  font-size: 2rem;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.hero-lede {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  max-width: 640px;
+}
+@media (max-width: 600px) {
+  .hero { padding: 1.25rem 1.1rem; }
+  .hero-title { font-size: 1.55rem; }
+  .hero-lede { font-size: 1rem; }
+}
+
+/* ----- Onboarding banner (first-time users) ----- */
+.onboarding-banner {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin: 0 0 1.5rem;
+  padding: 1.5rem 1.6rem;
+  background: var(--surface);
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.onboarding-banner-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: .15rem;
+}
+.onboarding-banner-body { flex: 1; min-width: 0; }
+.onboarding-banner h2 {
+  margin: 0 0 .65rem;
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+.onboarding-steps {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  line-height: 1.65;
+}
+.onboarding-steps li { margin-bottom: .4rem; }
+.onboarding-steps li strong { color: var(--ink); }
+@media (max-width: 600px) {
+  .onboarding-banner { flex-direction: column; gap: .75rem; padding: 1.1rem; }
+}
+
+/* ----- Section + page subtitles ----- */
+.section-title {
+  margin: 1.5rem 0 .65rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: .01em;
+}
+.page-subtitle {
+  margin: -.3rem 0 1.5rem;
+  color: var(--ink-soft);
+  font-size: .98rem;
+  line-height: 1.55;
+  max-width: 720px;
+}
+
+/* ----- Dashboard 2-column recents ----- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+@media (max-width: 700px) {
+  .dashboard-grid { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+/* ----- Empty-state polish ----- */
+.empty-state h3 { font-size: 1.1rem; }
+.empty-state p { line-height: 1.55; }
+.empty-state-small {
+  padding: 1.1rem 1.25rem;
+  text-align: left;
+  border-style: dashed;
+  background: transparent;
+}
+
+/* ----- Toast (save confirmation, etc.) ----- */
+#toast-holder {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  pointer-events: none;
+  max-width: 90vw;
+}
+.toast {
+  padding: .8rem 1.35rem;
+  background: #2D2D2D;
+  color: #FBF8F3;
+  border-radius: var(--radius);
+  font-size: .95rem;
+  font-weight: 500;
+  box-shadow: 0 6px 24px rgba(0,0,0,.18);
+  opacity: 0;
+  transform: translateY(.5rem);
+  transition: opacity .25s ease-out, transform .25s ease-out;
+  pointer-events: auto;
+  text-align: center;
+}
+.toast.is-visible { opacity: 1; transform: translateY(0); }
+.toast-success { background: var(--success); }
+
+@media print {
+  #toast-holder { display: none !important; }
+  .hero, .onboarding-banner { display: none !important; }
+}
