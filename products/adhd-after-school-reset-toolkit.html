@@ -47,7 +47,7 @@
     "brand": { "@type": "Brand", "name": "Fearless Creations" },
     "offers": {
       "@type": "Offer",
-      "price": "29.00",
+      "price": "12.99",
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock",
       "url": "https://creativekidsdigit.github.io/products/adhd-after-school-reset-toolkit.html"
@@ -56,6 +56,26 @@
   </script>
 </head>
 <body>
+
+  <!-- 24-Hour Launch Banner -->
+  <div class="launch-banner" role="region" aria-label="Launch week banner">
+    <div class="launch-banner-inner">
+      <span class="launch-banner-pulse" aria-hidden="true"></span>
+      <strong>Launch Week &mdash; 24 Hours Left.</strong>
+      <span>After-School Reset Toolkit at <strong>$12.99</strong> (regular $29).</span>
+      <a href="#pricing" class="launch-banner-cta">Grab it before midnight &rarr;</a>
+    </div>
+  </div>
+  <style>
+    .launch-banner{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#E8A87C,#D88860);color:#FBF8F3;padding:.75rem 1rem;font-family:'Inter',system-ui,sans-serif;font-size:.95rem;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    .launch-banner-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:.6rem;flex-wrap:wrap}
+    .launch-banner strong{font-weight:700}
+    .launch-banner-pulse{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;background:#FBF8F3;animation:lb-pulse 1.6s infinite ease-in-out}
+    .launch-banner-cta{color:#FBF8F3;text-decoration:underline;font-weight:600;white-space:nowrap}
+    .launch-banner-cta:hover{opacity:.85}
+    @keyframes lb-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+    @media (max-width:600px){.launch-banner{font-size:.85rem;padding:.6rem .8rem}}
+  </style>
 
   <!-- Navigation -->
   <header class="site-header">
@@ -95,7 +115,7 @@
           <p class="lead">The <strong>After-School Reset Toolkit</strong> is a complete 28-page system that turns the chaos between 3pm and bedtime into a calm, predictable routine &mdash; so your child can decompress, your evenings can breathe, and homework stops being a war.</p>
           <p class="landing-reframe"><em>&ldquo;You didn&rsquo;t ruin them. School drained their battery.&rdquo;</em></p>
           <div class="hero-cta">
-            <a href="#pricing" class="btn btn-primary btn-lg">Get the Full System &mdash; $29</a>
+            <a href="#pricing" class="btn btn-primary btn-lg">Get the Toolkit &mdash; $12.99 <span style="opacity:.75;text-decoration:line-through;font-weight:400;margin-left:.4rem;">$29</span></a>
             <a href="#whats-inside" class="btn btn-ghost btn-lg">See what&rsquo;s inside</a>
           </div>
           <div class="landing-social-proof">
@@ -347,8 +367,8 @@
           </div>
           <div class="pricing-card-body">
             <div class="price-block">
-              <span class="price-main">$29</span>
-              <span class="price-note">One-time purchase &middot; Instant PDF download</span>
+              <span class="price-main">$12.99</span>
+              <span class="price-note"><span style="text-decoration:line-through;color:#aaa;">$29</span> &middot; Launch week only &middot; Instant PDF download</span>
             </div>
             <ul class="feature-list">
               <li>10-page Parent Guide (the full reset method)</li>
@@ -365,7 +385,8 @@
               <li>US Letter (8.5 &times; 11 in), 300 DPI, unlimited prints</li>
             </ul>
             <div class="product-cta" style="margin-top:1.5rem;">
-              <a href="https://payhip.com/creativekidsdigit" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" data-payhip-product="AFTER_SCHOOL_RESET">Buy Now &mdash; $29</a>
+              <a href="https://payhip.com/creativekidsdigit" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" data-payhip-product="AFTER_SCHOOL_RESET">Buy now &mdash; $12.99 (launch price)</a>
+              <!-- TODO_PAYHIP_URL: replace href with https://payhip.com/b/<your-slug> once the After-School Reset Toolkit is published on Payhip. Until then, the storefront fallback is used. -->
             </div>
             <div class="guarantee-strip" style="margin-top:1.2rem;">
               <span class="pill">
