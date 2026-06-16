@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson Planner — for novice teachers</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+  <header class="topbar no-print">
+    <a href="#/" class="brand">
+      <span class="brand-mark">📘</span>
+      <span class="brand-name">Lesson Planner</span>
+    </a>
+    <nav class="primary-nav" aria-label="Main navigation">
+      <a href="#/" data-route="dashboard">Dashboard</a>
+      <a href="#/lessons" data-route="lessons">Lesson Plans</a>
+      <a href="#/weeks" data-route="weeks">Weekly Planner</a>
+      <a href="#/activities" data-route="activities">Activities</a>
+      <a href="#/problems" data-route="problems">Problem Solver</a>
+    </nav>
+    <div class="topbar-actions">
+      <button id="printBtn" type="button" class="btn btn-soft" aria-label="Print or export the current view as PDF">
+        🖨 Print / PDF
+      </button>
+    </div>
+  </header>
+
+  <main id="app" class="main" role="main">
+    <p class="loading">Loading…</p>
+  </main>
+
+  <footer class="appfoot no-print">
+    <small>Lesson Planner MVP · everything is saved in your browser only · no account, no server, no tracking</small>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="storage.js"></script>
+  <script src="views.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
