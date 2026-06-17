@@ -1,7 +1,11 @@
 # Lesson Planner — MVP for novice teachers
 
-A simple web application for first- and second-year teachers. No account, no
-server, no tracking. Everything is saved in your browser.
+> Plan a lesson in 10 minutes. Find an activity in 30 seconds. Get a script
+> for any classroom problem in one click. Built for first- and second-year
+> teachers who don't have time to overthink it.
+
+A simple web application. No account, no server, no tracking. Everything
+is saved in your browser.
 
 ## Features
 
