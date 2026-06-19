@@ -107,6 +107,28 @@ Subline (one line under the headline, smaller):
 > ✓ Grandparents, aunts, and caregivers gifting it to a family
 >
 > ━━━━━━━━━━━━━━━━━━━━
+> **FAQ**
+> ━━━━━━━━━━━━━━━━━━━━
+>
+> **Do I need a printer?**
+> A home printer is easiest. Any print shop or your local library can also print the PDF on standard US Letter paper. Designed for at-home printing.
+>
+> **What if my kid is older or younger than the 6–16 range?**
+> Older teens (15–16) often use the kit as a self-management starter — the homework planner, focus tracker, and goal-setting pages work especially well. Younger kids (6) start with the visual routine charts and grow into the rest.
+>
+> **Is this a phone app or interactive tool?**
+> No. This is a printable PDF you print on paper. There's no app to install, no login, no subscription, no software.
+>
+> **Multiple kids — one purchase or several?**
+> One purchase covers your family. Print as many copies as your household needs.
+>
+> **Will I get future updates?**
+> Yes. If we update the kit, you get the new version free in the same Payhip download.
+>
+> **What if it's not what I needed?**
+> Email us within 14 days and we'll refund you. No friction. We'd rather have your trust than your $17.
+>
+> ━━━━━━━━━━━━━━━━━━━━
 > **A NOTE FROM US**
 > ━━━━━━━━━━━━━━━━━━━━
 >
@@ -134,7 +156,14 @@ Subline (one line under the headline, smaller):
 > ✦ Personal / single-family use.
 > ✦ Please don't redistribute, resell, or share. Tell a friend to grab their own copy instead — it helps us keep making these.
 >
-> Search words: ADHD back to school, ADHD printable, ADHD planner, ADHD chart, back to school printable, ADHD homework, ADHD focus tracker, ADHD reward chart, emotion regulation kids, parent teacher log, ADHD parents, ADHD kids, ADHD ages 6 to 16, neurodivergent family, instant download printable.
+> ━━━━━━━━━━━━━━━━━━━━
+> **WHO THIS IS NOT FOR**
+> ━━━━━━━━━━━━━━━━━━━━
+>
+> ✦ Not for: parents looking for a phone app or video course — this is a print-at-home PDF.
+> ✦ Not for: parents who want a daily-email program or coaching plan — this is a tool, not a course.
+> ✦ Not for: kids under 6 — the visuals work, but most written prompts assume reading.
+> ✦ Not for: anyone hoping a printable will replace ADHD therapy or medication — it doesn't, it just makes the day-to-day easier.
 
 ---
 
