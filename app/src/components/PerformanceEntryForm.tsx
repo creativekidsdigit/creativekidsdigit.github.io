@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { Info } from "lucide-react";
 import type { CampaignPlatform, PerformanceSnapshot } from "@/types";
 
 interface Props {
@@ -86,6 +87,21 @@ export default function PerformanceEntryForm({
         onSubmit(v);
       }}
     >
+      <div
+        role="note"
+        className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200"
+      >
+        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <div>
+          <strong>Enter this period's totals</strong> (e.g. this week's new
+          clicks), <strong>not</strong> the lifetime cumulative numbers shown
+          on your platform's dashboard.
+          <br />
+          Snapshots are summed over time — entering cumulative totals will
+          double-count.
+        </div>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-3">
         <NumberField id={idDate} label="Date" type="date" value={v.date ?? ""} onChange={(val) => num("date", val as string)} />
         <NumberField id={idImpressions} label="Impressions" value={v.impressions ?? 0} onChange={(val) => num("impressions", val as number)} />
