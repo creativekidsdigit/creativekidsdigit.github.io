@@ -77,6 +77,17 @@ function asString(v: unknown, fallback = ""): string {
 function asNumber(v: unknown, fallback = 0): number {
   return typeof v === "number" && Number.isFinite(v) ? v : fallback;
 }
+/**
+ * Like `asNumber`, but additionally clamps negative values to zero. Used for
+ * count-type metrics (impressions, clicks, sales, etc.) where a negative
+ * value is meaningless and would silently corrupt charts and aggregates.
+ * Monetary fields (revenue, cost) deliberately do NOT use this — they can be
+ * negative to represent refunds or adjustments.
+ */
+function asNonNegativeNumber(v: unknown, fallback = 0): number {
+  const n = asNumber(v, fallback);
+  return n < 0 ? 0 : n;
+}
 function asBool(v: unknown, fallback = false): boolean {
   return typeof v === "boolean" ? v : fallback;
 }
@@ -371,16 +382,21 @@ export function sanitizePerformance(
     id,
     campaignId,
     date: asString(v.date, new Date().toISOString().slice(0, 10)),
-    impressions: asNumber(v.impressions, 0),
-    clicks: asNumber(v.clicks, 0),
-    saves: asNumber(v.saves, 0),
-    shares: asNumber(v.shares, 0),
-    comments: asNumber(v.comments, 0),
-    emailOpens: asNumber(v.emailOpens, 0),
-    emailClicks: asNumber(v.emailClicks, 0),
-    websiteVisits: asNumber(v.websiteVisits, 0),
-    productPageVisits: asNumber(v.productPageVisits, 0),
-    sales: asNumber(v.sales, 0),
+    // Count metrics: negatives are meaningless, clamp to zero. This protects
+    // every downstream chart, KPI tile, and AI insight from absurd values
+    // (typed by the user, imported from a backup, or written by future code).
+    impressions: asNonNegativeNumber(v.impressions, 0),
+    clicks: asNonNegativeNumber(v.clicks, 0),
+    saves: asNonNegativeNumber(v.saves, 0),
+    shares: asNonNegativeNumber(v.shares, 0),
+    comments: asNonNegativeNumber(v.comments, 0),
+    emailOpens: asNonNegativeNumber(v.emailOpens, 0),
+    emailClicks: asNonNegativeNumber(v.emailClicks, 0),
+    websiteVisits: asNonNegativeNumber(v.websiteVisits, 0),
+    productPageVisits: asNonNegativeNumber(v.productPageVisits, 0),
+    sales: asNonNegativeNumber(v.sales, 0),
+    // Monetary fields stay signed — a negative revenue/cost line can validly
+    // represent a refund or accounting adjustment in a single period.
     revenue: asNumber(v.revenue, 0),
     cost: asNumber(v.cost, 0),
     notes: asString(v.notes),
