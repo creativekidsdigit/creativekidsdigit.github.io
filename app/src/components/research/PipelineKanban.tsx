@@ -183,7 +183,7 @@ export default function PipelineKanban({ opportunities, onNew }: Props) {
                     onClick={onNew}
                     className="btn-ghost h-7 justify-start text-[11px] text-brand-600"
                   >
-                    <Plus className="h-3 w-3" /> Add idea
+                    <Plus className="h-3 w-3" aria-hidden="true" /> Add idea
                   </button>
                 )}
               </div>

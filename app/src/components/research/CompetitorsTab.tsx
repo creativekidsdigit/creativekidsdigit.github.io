@@ -43,7 +43,7 @@ export default function CompetitorsTab() {
           />
         </div>
         <button className="btn-primary" onClick={() => setOpenNew(true)}>
-          <Plus className="h-4 w-4" /> Add competitor
+          <Plus className="h-4 w-4" aria-hidden="true" /> Add competitor
         </button>
       </div>
 
@@ -120,7 +120,7 @@ export default function CompetitorsTab() {
                         className="btn-ghost h-7 w-7 p-0"
                         aria-label={`Delete ${c.productTitle}`}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
                     </td>
                   </tr>

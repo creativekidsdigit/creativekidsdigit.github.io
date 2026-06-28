@@ -217,11 +217,11 @@ export default function ImportDataModal({
             >
               {busy ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Reading…
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Reading…
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4" /> Choose CSV file
+                  <Upload className="h-4 w-4" aria-hidden="true" /> Choose CSV file
                 </>
               )}
             </label>
@@ -237,7 +237,7 @@ export default function ImportDataModal({
           <>
             <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
               <span className="inline-flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5" />
+                <FileText className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="font-medium">{fileName}</span>
                 <span className="text-slate-400">
                   · {setup.headers.length} columns
@@ -309,7 +309,7 @@ export default function ImportDataModal({
               <ul className="space-y-1 text-xs text-amber-700 dark:text-amber-300">
                 {mappingIssues.map((m) => (
                   <li key={m} className="flex items-start gap-1.5">
-                    <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+                    <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
                     <span>{m}</span>
                   </li>
                 ))}
@@ -333,7 +333,7 @@ export default function ImportDataModal({
               >
                 {busy ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Previewing…
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Previewing…
                   </>
                 ) : (
                   <>Preview {setup.sample.length > 0 ? "rows" : "import"}</>
@@ -484,7 +484,7 @@ export default function ImportDataModal({
               >
                 {busy ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Importing…
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Importing…
                   </>
                 ) : (
                   <>

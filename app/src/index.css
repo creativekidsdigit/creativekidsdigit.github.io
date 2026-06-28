@@ -65,3 +65,20 @@
 .prose-output {
   @apply whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-slate-100;
 }
+
+/*
+ * Honor the user's OS-level reduced-motion preference (WCAG 2.3.3).
+ * Decorative motion is suppressed; functional motion is preserved:
+ *   - animate-fade-in (route transitions)         → suppressed
+ *   - animate-shimmer (skeleton placeholders)     → suppressed
+ *   - animate-spin (loading spinners)             → preserved, because
+ *     the spin is the primary signal of "work in progress" for sighted
+ *     users; toast announcements and progress text cover SR users.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-shimmer,
+  .shimmer {
+    animation: none !important;
+  }
+}

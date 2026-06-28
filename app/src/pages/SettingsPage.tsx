@@ -183,7 +183,7 @@ export default function SettingsPage() {
               </button>
 
               <label htmlFor={idImport} className="btn-secondary cursor-pointer">
-                <Upload className="h-4 w-4" /> Import backup
+                <Upload className="h-4 w-4" aria-hidden="true" /> Import backup
                 <input
                   id={idImport}
                   type="file"
@@ -218,7 +218,7 @@ export default function SettingsPage() {
                   toast.success("Workspace reset to factory state");
                 }}
               >
-                <AlertTriangle className="h-4 w-4" /> Reset workspace
+                <AlertTriangle className="h-4 w-4" aria-hidden="true" /> Reset workspace
               </button>
             </div>
           </SectionCard>
@@ -278,7 +278,7 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
         <span className="text-xs text-slate-500">
           {cfg.apiKey || !adapter.needsApiKey ? (
             <span className="inline-flex items-center gap-1 text-emerald-600">
-              <Check className="h-3.5 w-3.5" /> configured
+              <Check className="h-3.5 w-3.5" aria-hidden="true" /> configured
             </span>
           ) : (
             "not configured"
@@ -310,7 +310,7 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
                 aria-pressed={showKey}
                 onClick={() => setShowKey((v) => !v)}
               >
-                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showKey ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
               </button>
             </div>
             <p className="mt-1 text-[11px] text-slate-500">
@@ -358,8 +358,7 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
             onClick={test}
           >
             <RefreshCcw
-              className={`h-4 w-4 ${testing ? "animate-spin" : ""}`}
-            />
+              className={`h-4 w-4 ${testing ? "animate-spin" : ""}`} aria-hidden="true" />
             Test connection
           </button>
         </div>

@@ -50,7 +50,7 @@ export default function ProductsPage() {
 
       <div className="card mb-5 flex flex-wrap items-center gap-3 p-3">
         <div className="flex flex-1 items-center gap-2 rounded-lg border border-slate-200 px-2 py-1 dark:border-slate-700">
-          <Search className="h-4 w-4 text-slate-400" />
+          <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
           <input
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
             placeholder="Search products…"
@@ -135,7 +135,7 @@ export default function ProductsPage() {
                   }}
                   className="btn-ghost h-7 px-2 text-xs"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               </div>
             </div>

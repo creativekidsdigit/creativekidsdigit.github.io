@@ -96,7 +96,7 @@ export default function OpportunityDetailPage() {
           <ArrowLeft className="h-4 w-4" /> All opportunities
         </Link>
         <button className="btn-primary" onClick={onConvert}>
-          <Package className="h-4 w-4" />{" "}
+          <Package className="h-4 w-4" aria-hidden="true" />{" "}
           {opportunity.linkedProductId
             ? "Open linked product"
             : "Convert to product"}
@@ -110,7 +110,7 @@ export default function OpportunityDetailPage() {
             nav("/research");
           }}
         >
-          <Trash2 className="h-4 w-4" /> Delete
+          <Trash2 className="h-4 w-4" aria-hidden="true" /> Delete
         </button>
       </PageHeader>
 
@@ -166,7 +166,7 @@ export default function OpportunityDetailPage() {
                   <div className="mt-3 flex flex-wrap gap-1">
                     {action.id === "convert" && (
                       <button className="btn-primary h-7 text-xs" onClick={onConvert}>
-                        <Package className="h-3 w-3" /> Convert to product draft
+                        <Package className="h-3 w-3" aria-hidden="true" /> Convert to product draft
                       </button>
                     )}
                     {action.id === "open-linked-product" &&
@@ -274,7 +274,7 @@ export default function OpportunityDetailPage() {
                   {contrib.blockers.length > 0 && (
                     <div>
                       <div className="mb-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">
-                        <TrendingDown className="h-3 w-3" /> What's holding it back
+                        <TrendingDown className="h-3 w-3" aria-hidden="true" /> What's holding it back
                       </div>
                       <ul className="space-y-1">
                         {contrib.blockers.map((c) => (

@@ -106,11 +106,11 @@ export default function ExportMenu({
           >
             {busyId === exporter.id ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Exporting…
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Exporting…
               </>
             ) : (
               <>
-                <Download className="h-4 w-4" /> {label ?? exporter.label}
+                <Download className="h-4 w-4" aria-hidden="true" /> {label ?? exporter.label}
               </>
             )}
           </button>
@@ -122,7 +122,7 @@ export default function ExportMenu({
               aria-label={`Preview ${exporter.label}`}
               title="Preview contents"
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="h-4 w-4" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -145,7 +145,7 @@ export default function ExportMenu({
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
-          <Download className="h-4 w-4" /> {label ?? "Export"}
+          <Download className="h-4 w-4" aria-hidden="true" /> {label ?? "Export"}
         </button>
         {open && (
           <div
@@ -158,7 +158,7 @@ export default function ExportMenu({
                 role="menuitem"
                 className="flex items-start gap-2 rounded-md px-2 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
               >
-                <Download className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                <Download className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                   <button
                     type="button"
@@ -178,7 +178,7 @@ export default function ExportMenu({
                       disabled={busyId !== null}
                       onClick={() => runPreview(e)}
                     >
-                      <Eye className="h-3 w-3" /> Preview contents
+                      <Eye className="h-3 w-3" aria-hidden="true" /> Preview contents
                     </button>
                   )}
                 </div>
@@ -271,7 +271,7 @@ function PreviewModal({
               </>
             ) : (
               <>
-                <Download className="h-4 w-4" /> Download
+                <Download className="h-4 w-4" aria-hidden="true" /> Download
               </>
             )}
           </button>

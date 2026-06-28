@@ -70,7 +70,7 @@ export default function ContentLibraryPage() {
 
       <div className="card mb-5 flex flex-wrap items-center gap-3 p-3">
         <div className="flex flex-1 items-center gap-2 rounded-lg border border-slate-200 px-2 py-1 dark:border-slate-700">
-          <Search className="h-4 w-4 text-slate-400" />
+          <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
           <input
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
             placeholder="Search saved content…"
@@ -139,7 +139,7 @@ export default function ContentLibraryPage() {
                         {c.title}
                       </div>
                       {c.pinned && (
-                        <Pin className="h-3.5 w-3.5 text-amber-500" />
+                        <Pin className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
                       )}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
@@ -164,12 +164,13 @@ export default function ContentLibraryPage() {
                     <button
                       className="btn-ghost h-8 w-8 p-0"
                       onClick={() => togglePin(active.id)}
-                      title="Pin"
+                      aria-label={active.pinned ? "Unpin content" : "Pin content"}
+                      title={active.pinned ? "Unpin" : "Pin"}
                     >
                       {active.pinned ? (
-                        <PinOff className="h-4 w-4" />
+                        <PinOff className="h-4 w-4" aria-hidden="true" />
                       ) : (
-                        <Pin className="h-4 w-4" />
+                        <Pin className="h-4 w-4" aria-hidden="true" />
                       )}
                     </button>
                     <button
@@ -179,7 +180,7 @@ export default function ContentLibraryPage() {
                         if (ok) toast.success("Copied");
                       }}
                     >
-                      <Copy className="h-3.5 w-3.5" /> Copy
+                      <Copy className="h-3.5 w-3.5" aria-hidden="true" /> Copy
                     </button>
                     <button
                       className="btn-secondary h-8"
@@ -191,7 +192,7 @@ export default function ContentLibraryPage() {
                         )
                       }
                     >
-                      <Download className="h-3.5 w-3.5" /> .md
+                      <Download className="h-3.5 w-3.5" aria-hidden="true" /> .md
                     </button>
                     <ExportMenu
                       scope="asset"
@@ -211,9 +212,10 @@ export default function ContentLibraryPage() {
                         await deleteContent(active.id);
                         toast.success("Deleted");
                       }}
+                      aria-label={`Delete ${active.title}`}
                       title="Delete"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </div>
                 }

@@ -25,9 +25,9 @@ const SEVERITY_TONE: Record<
 };
 
 const SEVERITY_ICON: Record<GapFinding["severity"], React.ReactNode> = {
-  info: <AlertCircle className="h-3.5 w-3.5" />,
-  note: <AlertCircle className="h-3.5 w-3.5" />,
-  opportunity: <TrendingUp className="h-3.5 w-3.5" />,
+  info: <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />,
+  note: <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />,
+  opportunity: <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />,
 };
 
 export default function InsightsTab() {
@@ -148,11 +148,11 @@ export default function InsightsTab() {
           >
             {biLoading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Generating…
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Generating…
               </>
             ) : (
               <>
-                <Sparkles className="h-4 w-4" />{" "}
+                <Sparkles className="h-4 w-4" aria-hidden="true" />{" "}
                 {biText ? "Regenerate brief" : "Generate brief"}
               </>
             )}
@@ -175,7 +175,7 @@ export default function InsightsTab() {
                     if (ok) toast.success("Copied");
                   }}
                 >
-                  <Copy className="h-3 w-3" /> Copy
+                  <Copy className="h-3 w-3" aria-hidden="true" /> Copy
                 </button>
               </div>
               <pre className="whitespace-pre-wrap text-xs leading-relaxed text-slate-800 dark:text-slate-100">

@@ -182,7 +182,7 @@ export default function PublishingWorkspacePage() {
                   onClick={() => bulkMark(kind, false)}
                   title="Unmark all in this section"
                 >
-                  <Circle className="h-3 w-3" /> Unmark all
+                  <Circle className="h-3 w-3" aria-hidden="true" /> Unmark all
                 </button>
               </div>
             }
@@ -236,9 +236,9 @@ function AssetCard({
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium">
           {isPublished ? (
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden="true" />
           ) : (
-            <Circle className="h-4 w-4 text-slate-300 dark:text-slate-600" />
+            <Circle className="h-4 w-4 text-slate-300 dark:text-slate-600" aria-hidden="true" />
           )}
           <span>{asset.title}</span>
           {isPublished && asset.publishedAt && (
@@ -254,7 +254,7 @@ function AssetCard({
             onClick={onCopy}
             title="Copy formatted output"
           >
-            <Copy className="h-3.5 w-3.5" /> Copy
+            <Copy className="h-3.5 w-3.5" aria-hidden="true" /> Copy
           </button>
           <button
             className={
@@ -266,11 +266,11 @@ function AssetCard({
           >
             {isPublished ? (
               <>
-                <Circle className="h-3 w-3" /> Unmark
+                <Circle className="h-3 w-3" aria-hidden="true" /> Unmark
               </>
             ) : (
               <>
-                <CheckCircle2 className="h-3 w-3" /> Mark published
+                <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Mark published
               </>
             )}
           </button>

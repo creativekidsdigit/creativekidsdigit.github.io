@@ -529,7 +529,7 @@ export default function CampaignBuilderPage() {
       {draftAvailable && tasks.length === 0 && (
         <div className="card mb-5 flex flex-wrap items-center justify-between gap-3 border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
           <div className="flex items-start gap-2 text-sm text-amber-900 dark:text-amber-200">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <div>
               <strong>Resume previous campaign?</strong> You have an unsaved
               draft from{" "}
@@ -663,7 +663,7 @@ export default function CampaignBuilderPage() {
                             : "border-slate-300 dark:border-slate-600"
                         }`}
                       >
-                        {checked && <Check className="h-3 w-3" />}
+                        {checked && <Check className="h-3 w-3" aria-hidden="true" />}
                       </span>
                       <input
                         type="checkbox"
@@ -697,7 +697,7 @@ export default function CampaignBuilderPage() {
           </div>
           {running ? (
             <button className="btn-danger" onClick={onCancel}>
-              <XCircle className="h-4 w-4" /> Cancel generation
+              <XCircle className="h-4 w-4" aria-hidden="true" /> Cancel generation
             </button>
           ) : (
             <button
@@ -705,7 +705,7 @@ export default function CampaignBuilderPage() {
               onClick={onGenerate}
               disabled={!product || previewPlan.length === 0}
             >
-              <Sparkles className="h-4 w-4" /> Generate campaign
+              <Sparkles className="h-4 w-4" aria-hidden="true" /> Generate campaign
             </button>
           )}
         </div>
@@ -723,7 +723,7 @@ export default function CampaignBuilderPage() {
                   <Eye className="h-3 w-3" /> Approve all
                 </button>
                 <button className="btn-ghost" onClick={removeAll}>
-                  <EyeOff className="h-3 w-3" /> Remove all
+                  <EyeOff className="h-3 w-3" aria-hidden="true" /> Remove all
                 </button>
               </div>
             ) : null
@@ -793,7 +793,7 @@ export default function CampaignBuilderPage() {
                 {approvedCount === 1 ? "" : "s"} ready to save.
                 {failedCount > 0 && (
                   <span className="ml-2 inline-flex items-center gap-1 text-amber-700 dark:text-amber-300">
-                    <AlertTriangle className="h-3.5 w-3.5" /> {failedCount}{" "}
+                    <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> {failedCount}{" "}
                     failed — regenerate or proceed.
                   </span>
                 )}
@@ -815,12 +815,12 @@ export default function CampaignBuilderPage() {
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Saving…
               </>
             ) : (
               <>
-                <Rocket className="h-4 w-4" /> Save campaign &amp; track
-                <ExternalLink className="h-3 w-3" />
+                <Rocket className="h-4 w-4" aria-hidden="true" /> Save campaign &amp; track
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
               </>
             )}
           </button>
@@ -895,7 +895,7 @@ function TaskCard({
                 onClick={onApprove}
                 title="Include in save"
               >
-                <Check className="h-3 w-3" /> Approve
+                <Check className="h-3 w-3" aria-hidden="true" /> Approve
               </button>
             ))}
           {(task.status === "succeeded" ||
@@ -907,7 +907,7 @@ function TaskCard({
               disabled={disabledRegen}
               aria-label={`Regenerate ${task.label}`}
             >
-              <RotateCw className="h-3 w-3" /> Regenerate
+              <RotateCw className="h-3 w-3" aria-hidden="true" /> Regenerate
             </button>
           )}
         </div>
@@ -953,17 +953,17 @@ function StatusIcon({
 }) {
   switch (status) {
     case "running":
-      return <Loader2 className="h-4 w-4 animate-spin text-brand-500" />;
+      return <Loader2 className="h-4 w-4 animate-spin text-brand-500" aria-hidden="true" />;
     case "succeeded":
       return approved ? (
-        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+        <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden="true" />
       ) : (
-        <EyeOff className="h-4 w-4 text-slate-400" />
+        <EyeOff className="h-4 w-4 text-slate-400" aria-hidden="true" />
       );
     case "failed":
-      return <XCircle className="h-4 w-4 text-rose-500" />;
+      return <XCircle className="h-4 w-4 text-rose-500" aria-hidden="true" />;
     case "aborted":
-      return <XCircle className="h-4 w-4 text-slate-400" />;
+      return <XCircle className="h-4 w-4 text-slate-400" aria-hidden="true" />;
     default:
       return (
         <span className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600" />

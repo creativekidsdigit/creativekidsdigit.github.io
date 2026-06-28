@@ -232,7 +232,7 @@ export default function CampaignDetailPage() {
           <Send className="h-4 w-4" /> Publishing workspace
         </Link>
         <button className="btn-secondary" onClick={exportSummary}>
-          <FileDown className="h-4 w-4" /> Export summary
+          <FileDown className="h-4 w-4" aria-hidden="true" /> Export summary
         </button>
         <ExportMenu
           scope="campaign"
@@ -254,7 +254,7 @@ export default function CampaignDetailPage() {
             nav("/campaigns");
           }}
         >
-          <Trash2 className="h-4 w-4" /> Delete
+          <Trash2 className="h-4 w-4" aria-hidden="true" /> Delete
         </button>
       </PageHeader>
 
@@ -340,7 +340,7 @@ export default function CampaignDetailPage() {
                 </div>
                 {totals.cost > campaign.budget && (
                   <p className="mt-2 inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400">
-                    <AlertTriangle className="h-3 w-3" />
+                    <AlertTriangle className="h-3 w-3" aria-hidden="true" />
                     Over budget by {fmtMoney(totals.cost - campaign.budget)}
                   </p>
                 )}
@@ -364,7 +364,7 @@ export default function CampaignDetailPage() {
                   className="btn-primary h-8"
                   onClick={() => setAddPerfOpen(true)}
                 >
-                  <Plus className="h-3.5 w-3.5" /> Add snapshot
+                  <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Add snapshot
                 </button>
               </div>
             }
@@ -385,7 +385,7 @@ export default function CampaignDetailPage() {
                       className="btn-primary"
                       onClick={() => setAddPerfOpen(true)}
                     >
-                      <Plus className="h-4 w-4" /> Add first snapshot
+                      <Plus className="h-4 w-4" aria-hidden="true" /> Add first snapshot
                     </button>
                   </div>
                 }
@@ -434,7 +434,7 @@ export default function CampaignDetailPage() {
                                 className="btn-ghost h-6 w-6 p-0"
                                 aria-label="Delete snapshot"
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-3 w-3" aria-hidden="true" />
                               </button>
                             </div>
                           </td>
@@ -603,7 +603,7 @@ export default function CampaignDetailPage() {
                   className="btn-secondary text-xs"
                   onClick={() => setAttachOpen(true)}
                 >
-                  <Pin className="h-3.5 w-3.5" /> Attach content
+                  <Pin className="h-3.5 w-3.5" aria-hidden="true" /> Attach content
                 </button>
               </div>
             ) : (
@@ -683,11 +683,11 @@ export default function CampaignDetailPage() {
               >
                 {insightLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Analyzing…
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Analyzing…
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4" /> Generate insight
+                    <Sparkles className="h-4 w-4" aria-hidden="true" /> Generate insight
                   </>
                 )}
               </button>
@@ -715,7 +715,7 @@ export default function CampaignDetailPage() {
                           if (ok) toast.success("Copied");
                         }}
                       >
-                        <Copy className="h-3 w-3" />
+                        <Copy className="h-3 w-3" aria-hidden="true" />
                       </button>
                       <button
                         className="btn-ghost h-7 px-2 text-xs"
@@ -727,7 +727,7 @@ export default function CampaignDetailPage() {
                           )
                         }
                       >
-                        <Download className="h-3 w-3" />
+                        <Download className="h-3 w-3" aria-hidden="true" />
                       </button>
                       <button
                         className="btn-secondary h-7 text-xs"

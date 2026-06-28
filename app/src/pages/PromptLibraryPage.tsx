@@ -65,13 +65,13 @@ export default function PromptLibraryPage() {
           <RotateCcw className="h-4 w-4" /> Reset built-ins
         </button>
         <button className="btn-primary" onClick={() => setOpenNew(true)}>
-          <Plus className="h-4 w-4" /> New prompt
+          <Plus className="h-4 w-4" aria-hidden="true" /> New prompt
         </button>
       </PageHeader>
 
       <div className="card mb-5 flex flex-wrap items-center gap-3 p-3">
         <div className="flex flex-1 items-center gap-2 rounded-lg border border-slate-200 px-2 py-1 dark:border-slate-700">
-          <Search className="h-4 w-4 text-slate-400" />
+          <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
           <input
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
             placeholder="Search prompts…"
@@ -125,8 +125,7 @@ export default function PromptLibraryPage() {
                   <Star
                     className={`h-4 w-4 ${
                       p.favorite ? "fill-amber-400 text-amber-400" : "text-slate-400"
-                    }`}
-                  />
+                    }`} aria-hidden="true" />
                 </button>
               </div>
               <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
@@ -164,7 +163,7 @@ export default function PromptLibraryPage() {
                       toast.success("Prompt deleted");
                     }}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 )}
               </div>
