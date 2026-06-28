@@ -82,10 +82,10 @@ export default function ResearchPage() {
         description="Decide what to build next. AI-suggested ideas with a transparent score, a Kanban pipeline, keyword research, competitor notes, and AI-generated business insights."
       >
         <button className="btn-secondary" onClick={() => setOpenIdeas(true)}>
-          <Sparkles className="h-4 w-4" /> Generate ideas
+          <Sparkles className="h-4 w-4" aria-hidden="true" /> Generate ideas
         </button>
         <button className="btn-primary" onClick={() => setOpenNew(true)}>
-          <Plus className="h-4 w-4" /> New opportunity
+          <Plus className="h-4 w-4" aria-hidden="true" /> New opportunity
         </button>
       </PageHeader>
 

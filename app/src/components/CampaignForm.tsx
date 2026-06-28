@@ -266,7 +266,7 @@ export default function CampaignForm({
                         : "border-slate-300 dark:border-slate-600"
                     }`}
                   >
-                    {checked && <Check className="h-3 w-3" />}
+                    {checked && <Check className="h-3 w-3" aria-hidden="true" />}
                   </span>
                   <input
                     type="checkbox"

@@ -379,7 +379,7 @@ export default function CampaignAnalyticsPage() {
               Search
             </label>
             <div className="flex items-center gap-2 rounded-lg border border-slate-300 px-2 py-1 dark:border-slate-700">
-              <Search className="h-4 w-4 text-slate-400" />
+              <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <input
                 id={idSearch}
                 className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
@@ -861,7 +861,7 @@ function ReportButton({
 }) {
   return (
     <button className="btn-secondary justify-start" onClick={onClick}>
-      <FileDown className="h-4 w-4" /> {label}
+      <FileDown className="h-4 w-4" aria-hidden="true" /> {label}
     </button>
   );
 }

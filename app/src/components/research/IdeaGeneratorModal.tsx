@@ -152,11 +152,11 @@ export default function IdeaGeneratorModal({ onClose, onCreated }: Props) {
       >
         {loading && drafts.length === 0 ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" /> Generating…
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Generating…
           </>
         ) : (
           <>
-            <Sparkles className="h-4 w-4" /> Generate ideas
+            <Sparkles className="h-4 w-4" aria-hidden="true" /> Generate ideas
           </>
         )}
       </button>
@@ -207,7 +207,7 @@ export default function IdeaGeneratorModal({ onClose, onCreated }: Props) {
                         : "border-slate-300 dark:border-slate-600"
                     }`}
                   >
-                    {selected.has(i) && <Check className="h-3 w-3" />}
+                    {selected.has(i) && <Check className="h-3 w-3" aria-hidden="true" />}
                   </span>
                   <input
                     type="checkbox"

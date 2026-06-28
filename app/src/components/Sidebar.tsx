@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -44,6 +45,18 @@ interface Props {
 }
 
 export default function Sidebar({ open, onClose }: Props) {
+  // Close the mobile slide-out when the user presses Escape. Listener is
+  // attached only while the overlay is open so it never affects desktop
+  // (md:translate-x-0 keeps the sidebar permanently visible there).
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   return (
     <>
       {/* mobile overlay */}
@@ -53,12 +66,14 @@ export default function Sidebar({ open, onClose }: Props) {
           open ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={onClose}
+        aria-hidden="true"
       />
       <aside
         className={clsx(
           "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform dark:border-slate-800 dark:bg-slate-900 md:static md:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
+        aria-label="Primary navigation"
       >
         <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-5 dark:border-slate-800">
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-brand-500 to-pink-500 text-white shadow-md">
@@ -87,7 +102,7 @@ export default function Sidebar({ open, onClose }: Props) {
                 )
               }
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
               {label}
             </NavLink>
           ))}

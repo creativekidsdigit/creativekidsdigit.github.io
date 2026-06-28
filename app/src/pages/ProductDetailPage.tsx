@@ -46,7 +46,7 @@ export default function ProductDetailPage() {
           className="btn-primary"
           onClick={() => nav(`/copy?product=${product.id}`)}
         >
-          <Zap className="h-4 w-4" /> Generate copy
+          <Zap className="h-4 w-4" aria-hidden="true" /> Generate copy
         </button>
         <ExportMenu
           scope="product"
@@ -67,7 +67,7 @@ export default function ProductDetailPage() {
             nav("/products");
           }}
         >
-          <Trash2 className="h-4 w-4" /> Delete
+          <Trash2 className="h-4 w-4" aria-hidden="true" /> Delete
         </button>
       </PageHeader>
 

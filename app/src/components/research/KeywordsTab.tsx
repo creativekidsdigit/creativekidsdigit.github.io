@@ -158,7 +158,7 @@ export default function KeywordsTab() {
           </div>
           <div className="flex items-end">
             <button className="btn-primary" onClick={onAdd}>
-              <Plus className="h-4 w-4" /> Add
+              <Plus className="h-4 w-4" aria-hidden="true" /> Add
             </button>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function KeywordsTab() {
       {/* Filter bar */}
       <div className="card flex flex-wrap items-center gap-3 p-3">
         <div className="flex flex-1 items-center gap-2 rounded-lg border border-slate-200 px-2 py-1 dark:border-slate-700">
-          <Search className="h-4 w-4 text-slate-400" />
+          <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
           <label htmlFor={idSearch} className="sr-only">
             Search keywords
           </label>
@@ -270,7 +270,7 @@ export default function KeywordsTab() {
                     className="btn-ghost h-7 w-7 p-0"
                     aria-label={`Delete ${k.term}`}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 </li>
               ))}

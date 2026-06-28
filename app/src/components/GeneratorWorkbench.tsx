@@ -205,14 +205,14 @@ export default function GeneratorWorkbench({
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            <Wand2 className="h-6 w-6 text-brand-500" /> {title}
+            <Wand2 className="h-6 w-6 text-brand-500" aria-hidden="true" /> {title}
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
             {description}
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-500">
-          <Settings className="h-3.5 w-3.5" />
+          <Settings className="h-3.5 w-3.5" aria-hidden="true" />
           <Link to="/settings" className="hover:underline">
             {settings.providers[settings.activeProvider]?.model || "model"}
             <ChevronRight className="ml-0.5 inline h-3 w-3" />
@@ -315,11 +315,11 @@ export default function GeneratorWorkbench({
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Generating…
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Generating…
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4" /> Generate{" "}
+                    <Sparkles className="h-4 w-4" aria-hidden="true" /> Generate{" "}
                     <span className="kbd ml-1">⌘↵</span>
                   </>
                 )}
@@ -349,7 +349,7 @@ export default function GeneratorWorkbench({
                   Output
                   {meta && (
                     <span className="chip">
-                      <CheckCircle2 className="h-3 w-3" />
+                      <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
                       {meta.provider} · {meta.model} · {meta.ms}ms
                     </span>
                   )}
@@ -359,38 +359,40 @@ export default function GeneratorWorkbench({
                     className="btn-ghost h-8 w-8 p-0"
                     onClick={undo}
                     disabled={historyIdx <= 0}
+                    aria-label="Undo last change"
                     title="Undo"
                   >
-                    <Undo2 className="h-4 w-4" />
+                    <Undo2 className="h-4 w-4" aria-hidden="true" />
                   </button>
                   <button
                     className="btn-ghost h-8 w-8 p-0"
                     onClick={redo}
                     disabled={historyIdx >= history.length - 1}
+                    aria-label="Redo last change"
                     title="Redo"
                   >
-                    <Redo2 className="h-4 w-4" />
+                    <Redo2 className="h-4 w-4" aria-hidden="true" />
                   </button>
                   <button
                     className="btn-secondary h-8"
                     onClick={onCopy}
                     disabled={!output}
                   >
-                    <Copy className="h-3.5 w-3.5" /> Copy
+                    <Copy className="h-3.5 w-3.5" aria-hidden="true" /> Copy
                   </button>
                   <button
                     className="btn-secondary h-8"
                     onClick={onDownload}
                     disabled={!output}
                   >
-                    <Download className="h-3.5 w-3.5" /> .md
+                    <Download className="h-3.5 w-3.5" aria-hidden="true" /> .md
                   </button>
                   <button
                     className="btn-primary h-8"
                     onClick={onSave}
                     disabled={!output}
                   >
-                    <Save className="h-3.5 w-3.5" /> Save
+                    <Save className="h-3.5 w-3.5" aria-hidden="true" /> Save
                   </button>
                 </div>
               </header>

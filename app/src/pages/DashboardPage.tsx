@@ -128,7 +128,7 @@ export default function DashboardPage() {
           <Plus className="h-4 w-4" /> New product
         </button>
         <button className="btn-primary" onClick={() => nav("/copy")}>
-          <Zap className="h-4 w-4" /> Quick Generate
+          <Zap className="h-4 w-4" aria-hidden="true" /> Quick Generate
         </button>
       </PageHeader>
 
@@ -179,7 +179,7 @@ export default function DashboardPage() {
               onChange={(e) => setNewTaskTitle(e.target.value)}
             />
             <button className="btn-primary" type="submit">
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4" aria-hidden="true" />
             </button>
           </form>
           {todaysTasks.length === 0 ? (
@@ -200,7 +200,7 @@ export default function DashboardPage() {
                     }`}
                     aria-label="Toggle"
                   >
-                    {t.done && <Check className="h-3 w-3" />}
+                    {t.done && <Check className="h-3 w-3" aria-hidden="true" />}
                   </button>
                   <span
                     className={`flex-1 ${
@@ -213,7 +213,7 @@ export default function DashboardPage() {
                     onClick={() => deleteTask(t.id)}
                     className="btn-ghost h-6 w-6 p-0 opacity-40 hover:opacity-100"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3 w-3" aria-hidden="true" />
                   </button>
                 </li>
               ))}
@@ -268,7 +268,7 @@ export default function DashboardPage() {
               onChange={(e) => setNewIdea(e.target.value)}
             />
             <button className="btn-primary" type="submit">
-              <Lightbulb className="h-4 w-4" />
+              <Lightbulb className="h-4 w-4" aria-hidden="true" />
             </button>
           </form>
           {pinnedIdeas.length === 0 ? (
@@ -287,14 +287,14 @@ export default function DashboardPage() {
                     }`}
                     aria-label="Pin"
                   >
-                    <Pin className="h-4 w-4" />
+                    <Pin className="h-4 w-4" aria-hidden="true" />
                   </button>
                   <span className="flex-1">{i.text}</span>
                   <button
                     onClick={() => deleteIdea(i.id)}
                     className="btn-ghost h-6 w-6 p-0 opacity-40 hover:opacity-100"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3 w-3" aria-hidden="true" />
                   </button>
                 </li>
               ))}
