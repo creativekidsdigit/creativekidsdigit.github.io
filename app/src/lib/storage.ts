@@ -12,6 +12,32 @@ const store = createStore("aicw-os-db", "kv");
  */
 export const SCHEMA_VERSION = 1;
 
+/**
+ * Custom event dispatched on `window` when a persistent write fails (set or
+ * del). The Toast viewport (or any other UI surface) can listen for this and
+ * surface the failure to the user, so a silent IDB rejection doesn't become
+ * silent data loss.
+ *
+ *   detail: { op: "set" | "del" | "clear", key: string, error: unknown }
+ */
+export const STORAGE_ERROR_EVENT = "aicw:storage-error";
+
+function emitStorageError(
+  op: "set" | "del" | "clear",
+  key: string,
+  error: unknown
+): void {
+  if (typeof window === "undefined") return; // Node/SSR/test safety
+  try {
+    window.dispatchEvent(
+      new CustomEvent(STORAGE_ERROR_EVENT, { detail: { op, key, error } })
+    );
+  } catch {
+    // CustomEvent unavailable (very old environments) — fall through, the
+    // console.warn at the call site is still our diagnostic record.
+  }
+}
+
 export const storage = {
   async get<T>(key: string, fallback: T): Promise<T> {
     try {
@@ -53,6 +79,7 @@ export const storage = {
       await set(key, value, store);
     } catch (e) {
       console.warn("[storage.set] failed", key, e);
+      emitStorageError("set", key, e);
     }
   },
   async del(key: string): Promise<void> {
@@ -60,6 +87,7 @@ export const storage = {
       await del(key, store);
     } catch (e) {
       console.warn("[storage.del] failed", key, e);
+      emitStorageError("del", key, e);
     }
   },
   async keys(): Promise<string[]> {
