@@ -8,6 +8,17 @@ import {
   sanitizeSettings,
   sanitizeProduct,
 } from "../src/lib/migrate";
+import { parseCsv, parseCsvAsRecords } from "../src/lib/csvParse";
+import {
+  genericCsvImporter,
+  parseDate,
+  parseNumber,
+} from "../src/lib/importers/genericCsv";
+import type {
+  ImportContext,
+  ImporterSetup,
+} from "../src/lib/importers/types";
+import type { PerformanceSnapshot } from "../src/types";
 
 let failed = 0;
 function check(name: string, condition: boolean, detail?: unknown) {
@@ -1709,6 +1720,462 @@ check(
     ];
     const out = analyzeGaps(products, [], [], []);
     return out.some((f) => f.id === "season:halloween");
+  })()
+);
+
+// =========================================================================
+// PR #62 — Analytics Import (CSV parser, normalizers, generic importer)
+// =========================================================================
+
+console.log("\n== analytics import — CSV parser ==\n");
+
+check(
+  "parseCsv: empty string → no rows",
+  parseCsv("").length === 0
+);
+
+check(
+  "parseCsv: single header row",
+  (() => {
+    const r = parseCsv("a,b,c");
+    return r.length === 1 && r[0].length === 3 && r[0][2] === "c";
+  })()
+);
+
+check(
+  "parseCsv: LF line endings",
+  (() => {
+    const r = parseCsv("a,b\n1,2\n3,4");
+    return r.length === 3 && r[1][0] === "1" && r[2][1] === "4";
+  })()
+);
+
+check(
+  "parseCsv: CRLF line endings",
+  (() => {
+    const r = parseCsv("a,b\r\n1,2\r\n3,4\r\n");
+    return r.length === 3 && r[2][0] === "3";
+  })()
+);
+
+check(
+  "parseCsv: BOM is stripped",
+  (() => {
+    const r = parseCsv("\uFEFFcol\n1");
+    return r[0][0] === "col";
+  })()
+);
+
+check(
+  "parseCsv: quoted field with comma",
+  (() => {
+    const r = parseCsv('a,b\n"hello, world",2');
+    return r[1][0] === "hello, world" && r[1][1] === "2";
+  })()
+);
+
+check(
+  "parseCsv: escaped quote inside quoted field",
+  (() => {
+    const r = parseCsv('a\n"he said ""hi"""');
+    return r[1][0] === 'he said "hi"';
+  })()
+);
+
+check(
+  "parseCsv: quoted field with newline inside",
+  (() => {
+    const r = parseCsv('a,b\n"line1\nline2",x');
+    return r.length === 2 && r[1][0] === "line1\nline2" && r[1][1] === "x";
+  })()
+);
+
+check(
+  "parseCsv: trailing blank rows are dropped",
+  (() => {
+    const r = parseCsv("a,b\n1,2\n\n\n");
+    return r.length === 2;
+  })()
+);
+
+check(
+  "parseCsv: file without trailing newline still captures last row",
+  (() => {
+    const r = parseCsv("a,b\n1,2");
+    return r.length === 2 && r[1][1] === "2";
+  })()
+);
+
+check(
+  "parseCsvAsRecords: header normalization (trim)",
+  (() => {
+    const { headers, rows } = parseCsvAsRecords("  Date  ,  Clicks  \n2026-01-01,10");
+    return headers[0] === "Date" && headers[1] === "Clicks" && rows[0]["Date"] === "2026-01-01";
+  })()
+);
+
+check(
+  "parseCsvAsRecords: missing trailing cells become empty strings",
+  (() => {
+    const { rows } = parseCsvAsRecords("a,b,c\n1,2");
+    return rows[0]["a"] === "1" && rows[0]["b"] === "2" && rows[0]["c"] === "";
+  })()
+);
+
+check(
+  "parseCsvAsRecords: empty string → empty headers & rows",
+  (() => {
+    const { headers, rows } = parseCsvAsRecords("");
+    return headers.length === 0 && rows.length === 0;
+  })()
+);
+
+console.log("\n== analytics import — parseDate ==\n");
+
+check("parseDate: ISO yyyy-mm-dd", parseDate("2026-08-15") === "2026-08-15");
+check(
+  "parseDate: ISO datetime slices off time",
+  parseDate("2026-08-15T12:34:56Z") === "2026-08-15"
+);
+check(
+  "parseDate: US m/d/yyyy",
+  parseDate("8/15/2026") === "2026-08-15"
+);
+check(
+  "parseDate: US m/d/yyyy with zero padding",
+  parseDate("08/05/2026") === "2026-08-05"
+);
+check(
+  "parseDate: D/M/Y when first slot > 12",
+  parseDate("15/08/2026") === "2026-08-15"
+);
+check(
+  "parseDate: 'Aug 15, 2026' fallback via Date.parse",
+  parseDate("Aug 15, 2026") === "2026-08-15"
+);
+check(
+  "parseDate: whitespace tolerated",
+  parseDate("  2026-08-15  ") === "2026-08-15"
+);
+check("parseDate: empty string → null", parseDate("") === null);
+check("parseDate: garbage string → null", parseDate("not-a-date") === null);
+check(
+  "parseDate: invalid month (13) → null",
+  parseDate("2026-13-01") === null
+);
+check(
+  "parseDate: invalid day (32) → null",
+  parseDate("2026-01-32") === null
+);
+check(
+  "parseDate: out-of-range year → null",
+  parseDate("1750-01-01") === null
+);
+
+console.log("\n== analytics import — parseNumber ==\n");
+
+check("parseNumber: empty string → 0", parseNumber("") === 0);
+check("parseNumber: whitespace → 0", parseNumber("   ") === 0);
+check("parseNumber: plain integer", parseNumber("42") === 42);
+check("parseNumber: decimal", parseNumber("12.5") === 12.5);
+check(
+  "parseNumber: thousands separator",
+  parseNumber("1,234.56") === 1234.56
+);
+check(
+  "parseNumber: currency prefix $",
+  parseNumber("$19.99") === 19.99
+);
+check(
+  "parseNumber: currency prefix € (and trailing whitespace tolerated upstream)",
+  parseNumber("€19.99") === 19.99
+);
+check(
+  "parseNumber: K suffix → x1000",
+  parseNumber("1.2K") === 1200
+);
+check(
+  "parseNumber: M suffix → x1,000,000",
+  parseNumber("3M") === 3_000_000
+);
+check(
+  "parseNumber: B suffix lower/upper case",
+  parseNumber("2b") === 2_000_000_000
+);
+check(
+  "parseNumber: percent suffix returns raw number",
+  parseNumber("12%") === 12
+);
+check(
+  "parseNumber: combined currency + thousands",
+  parseNumber("$1,234,567.89") === 1234567.89
+);
+check(
+  "parseNumber: garbage → 0",
+  parseNumber("not-a-number") === 0
+);
+check(
+  "parseNumber: negative integer preserved",
+  parseNumber("-50") === -50
+);
+check(
+  "parseNumber: negative decimal (refund-style)",
+  parseNumber("-19.99") === -19.99
+);
+
+console.log("\n== analytics import — genericCsvImporter.inspect ==\n");
+
+check(
+  "inspect: returns headers, suggestedMapping, sample, raw",
+  (async () => {
+    const text =
+      "Date,Impressions,Clicks,Orders,Revenue\n" +
+      "2026-08-15,1000,50,5,99.95\n" +
+      "2026-08-16,1500,80,8,159.92\n";
+    const s = await genericCsvImporter.inspect(text);
+    return (
+      s.headers.length === 5 &&
+      s.headers[0] === "Date" &&
+      s.suggestedMapping["Date"] === "date" &&
+      s.suggestedMapping["Impressions"] === "impressions" &&
+      s.suggestedMapping["Clicks"] === "clicks" &&
+      s.suggestedMapping["Orders"] === "sales" &&
+      s.suggestedMapping["Revenue"] === "revenue" &&
+      Array.isArray(s.sample) &&
+      s.sample.length === 2
+    );
+  })()
+);
+
+check(
+  "inspect: duplicate field guesses deduplicate to 'ignore'",
+  (async () => {
+    // Two columns would both hint at "clicks" — second becomes 'ignore'.
+    const text = "Pin clicks,Link clicks,Date\n1,2,2026-08-15\n";
+    const s = await genericCsvImporter.inspect(text);
+    const mapped = Object.values(s.suggestedMapping).filter((v) => v === "clicks");
+    return mapped.length === 1 && s.suggestedMapping["Date"] === "date";
+  })()
+);
+
+check(
+  "inspect: completely unrecognized headers → all 'ignore' except where they fuzzy-match",
+  (async () => {
+    const text = "Foo,Bar,Baz\n1,2,3\n";
+    const s = await genericCsvImporter.inspect(text);
+    const vals = Object.values(s.suggestedMapping);
+    // Defensive: every value is a valid MappableField; nothing crashes.
+    return vals.every((v) =>
+      [
+        "ignore",
+        "date",
+        "impressions",
+        "clicks",
+        "saves",
+        "shares",
+        "comments",
+        "emailOpens",
+        "emailClicks",
+        "websiteVisits",
+        "productPageVisits",
+        "sales",
+        "revenue",
+        "cost",
+        "notes",
+      ].includes(v)
+    );
+  })()
+);
+
+check(
+  "inspect: sample slice is capped at 5 rows",
+  (async () => {
+    const lines = ["Date,Clicks"];
+    for (let i = 0; i < 12; i++) lines.push(`2026-08-${(i + 1).toString().padStart(2, "0")},${i}`);
+    const s = await genericCsvImporter.inspect(lines.join("\n"));
+    return s.sample.length === 5;
+  })()
+);
+
+console.log("\n== analytics import — genericCsvImporter.preview ==\n");
+
+function emptyCtx(): ImportContext {
+  return { campaignId: "c1", existingSnapshots: [] };
+}
+
+function existingCtx(dates: string[]): ImportContext {
+  const snaps: PerformanceSnapshot[] = dates.map((d, i) => ({
+    id: `s${i}`,
+    campaignId: "c1",
+    date: d,
+    impressions: 0,
+    clicks: 0,
+    saves: 0,
+    shares: 0,
+    comments: 0,
+    emailOpens: 0,
+    emailClicks: 0,
+    websiteVisits: 0,
+    productPageVisits: 0,
+    sales: 0,
+    revenue: 0,
+    cost: 0,
+    notes: "",
+    createdAt: 0,
+    updatedAt: 0,
+  }));
+  return { campaignId: "c1", existingSnapshots: snaps };
+}
+
+check(
+  "preview: maps a clean CSV into ok rows",
+  (async () => {
+    const text =
+      "Date,Impressions,Clicks,Orders,Revenue\n" +
+      "2026-08-15,1000,50,5,99.95\n" +
+      "2026-08-16,1500,80,8,159.92\n";
+    const setup = await genericCsvImporter.inspect(text);
+    const p = await genericCsvImporter.preview(setup, emptyCtx());
+    if (p.rows.length !== 2 || p.okCount !== 2) return false;
+    const first = p.rows[0];
+    return (
+      first.kind === "ok" &&
+      first.snapshot.date === "2026-08-15" &&
+      first.snapshot.impressions === 1000 &&
+      first.snapshot.clicks === 50 &&
+      first.snapshot.sales === 5 &&
+      first.snapshot.revenue === 99.95 &&
+      first.snapshot.campaignId === "c1"
+    );
+  })()
+);
+
+check(
+  "preview: duplicate date → skip kind (default)",
+  (async () => {
+    const text = "Date,Clicks\n2026-08-15,50\n2026-08-16,80\n";
+    const setup = await genericCsvImporter.inspect(text);
+    const p = await genericCsvImporter.preview(
+      setup,
+      existingCtx(["2026-08-15"])
+    );
+    return (
+      p.okCount === 1 &&
+      p.skipCount === 1 &&
+      p.errorCount === 0 &&
+      p.rows[0].kind === "skip" &&
+      p.rows[1].kind === "ok"
+    );
+  })()
+);
+
+check(
+  "preview: no date column mapped → every row is an error",
+  (async () => {
+    const text = "Foo,Clicks\nx,50\ny,80\n";
+    const setup = await genericCsvImporter.inspect(text);
+    // Force-clear any accidental 'date' mapping.
+    const mapping = { ...setup.suggestedMapping };
+    for (const k of Object.keys(mapping)) {
+      if (mapping[k] === "date") mapping[k] = "ignore";
+    }
+    const merged: ImporterSetup = { ...setup, suggestedMapping: mapping };
+    const p = await genericCsvImporter.preview(merged, emptyCtx());
+    return p.errorCount === 2 && p.okCount === 0 && p.rows[0].kind === "error";
+  })()
+);
+
+check(
+  "preview: unparseable date → error row",
+  (async () => {
+    const text = "Date,Clicks\nnot-a-date,50\n2026-08-16,80\n";
+    const setup = await genericCsvImporter.inspect(text);
+    const p = await genericCsvImporter.preview(setup, emptyCtx());
+    return (
+      p.errorCount === 1 &&
+      p.okCount === 1 &&
+      p.rows[0].kind === "error" &&
+      p.rows[1].kind === "ok"
+    );
+  })()
+);
+
+check(
+  "preview: count metrics clamp negative values to 0",
+  (async () => {
+    const text = "Date,Clicks,Sales\n2026-08-15,-50,-5\n";
+    const setup = await genericCsvImporter.inspect(text);
+    const p = await genericCsvImporter.preview(setup, emptyCtx());
+    if (p.rows[0].kind !== "ok") return false;
+    return p.rows[0].snapshot.clicks === 0 && p.rows[0].snapshot.sales === 0;
+  })()
+);
+
+check(
+  "preview: revenue and cost remain signed (refund support)",
+  (async () => {
+    const text = "Date,Revenue,Cost\n2026-08-15,-19.99,-5\n";
+    const setup = await genericCsvImporter.inspect(text);
+    const p = await genericCsvImporter.preview(setup, emptyCtx());
+    if (p.rows[0].kind !== "ok") return false;
+    return (
+      p.rows[0].snapshot.revenue === -19.99 &&
+      p.rows[0].snapshot.cost === -5
+    );
+  })()
+);
+
+check(
+  "preview: notes column carried through when mapped",
+  (async () => {
+    const text = "Date,Notes\n2026-08-15,Pinned to ADHD board\n";
+    const setup = await genericCsvImporter.inspect(text);
+    const p = await genericCsvImporter.preview(setup, emptyCtx());
+    return (
+      p.rows[0].kind === "ok" &&
+      p.rows[0].snapshot.notes === "Pinned to ADHD board"
+    );
+  })()
+);
+
+check(
+  "preview: unmapped metric columns default to 0",
+  (async () => {
+    const text = "Date,Clicks\n2026-08-15,50\n";
+    const setup = await genericCsvImporter.inspect(text);
+    const p = await genericCsvImporter.preview(setup, emptyCtx());
+    if (p.rows[0].kind !== "ok") return false;
+    const s = p.rows[0].snapshot;
+    return (
+      s.clicks === 50 &&
+      s.impressions === 0 &&
+      s.saves === 0 &&
+      s.shares === 0 &&
+      s.comments === 0 &&
+      s.emailOpens === 0 &&
+      s.emailClicks === 0 &&
+      s.websiteVisits === 0 &&
+      s.productPageVisits === 0 &&
+      s.sales === 0 &&
+      s.revenue === 0 &&
+      s.cost === 0 &&
+      s.notes === ""
+    );
+  })()
+);
+
+check(
+  "preview: campaignId from context is stamped on every snapshot",
+  (async () => {
+    const text = "Date,Clicks\n2026-08-15,50\n2026-08-16,80\n";
+    const setup = await genericCsvImporter.inspect(text);
+    const p = await genericCsvImporter.preview(setup, {
+      campaignId: "campaign-XYZ",
+      existingSnapshots: [],
+    });
+    return p.rows.every(
+      (r) => r.kind === "error" || r.snapshot.campaignId === "campaign-XYZ"
+    );
   })()
 );
 
