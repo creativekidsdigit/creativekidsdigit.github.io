@@ -3,6 +3,15 @@ import { get, set, del, keys, createStore } from "idb-keyval";
 
 const store = createStore("aicw-os-db", "kv");
 
+/**
+ * Bump this when the on-disk shape of any persisted entity changes in a way
+ * that requires a migration. The store's hydrate step reads the stored value
+ * and falls back to defaults if validation fails, so existing data is never
+ * silently corrupted — it's either accepted, migrated, or discarded with a
+ * console warning.
+ */
+export const SCHEMA_VERSION = 1;
+
 export const storage = {
   async get<T>(key: string, fallback: T): Promise<T> {
     try {
@@ -10,6 +19,32 @@ export const storage = {
       return (v as T) ?? fallback;
     } catch (e) {
       console.warn("[storage.get] failed", key, e);
+      return fallback;
+    }
+  },
+  /**
+   * Like `get`, but additionally runs the value through a shape guard. If the
+   * guard rejects, the fallback is returned and a single warning is logged.
+   * This is how we defend against:
+   *   - manually-edited IndexedDB (devtools)
+   *   - imported backups from a different schema
+   *   - half-written values from a previous tab that crashed mid-write
+   */
+  async getValidated<T>(
+    key: string,
+    fallback: T,
+    isValid: (v: unknown) => v is T
+  ): Promise<T> {
+    try {
+      const v = await get(key, store);
+      if (v === undefined || v === null) return fallback;
+      if (isValid(v)) return v;
+      console.warn(
+        `[storage.getValidated] rejecting malformed value at "${key}", using fallback`
+      );
+      return fallback;
+    } catch (e) {
+      console.warn("[storage.getValidated] failed", key, e);
       return fallback;
     }
   },
@@ -33,6 +68,14 @@ export const storage = {
     } catch {
       return [];
     }
+  },
+  /**
+   * Clears every known app key. Used by the in-app "Reset workspace" recovery
+   * affordance in Settings. Intentionally narrow: only deletes the keys we
+   * actually own, never `clear()` on the whole store.
+   */
+  async clearAll(): Promise<void> {
+    await Promise.all(Object.values(K).map((k) => storage.del(k)));
   },
 };
 

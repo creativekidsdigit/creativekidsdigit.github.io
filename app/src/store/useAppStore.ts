@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { storage, K } from "@/lib/storage";
 import { uid, now } from "@/lib/id";
 import { DEFAULT_SETTINGS, buildDefaultPrompts } from "@/lib/defaults";
+import { sanitizers, sanitizeSettings } from "@/lib/migrate";
 import type {
   AppSettings,
   ContentItem,
@@ -69,6 +70,7 @@ interface AppState {
   // utility
   exportAll(): Promise<string>;
   importAll(json: string): Promise<void>;
+  resetWorkspace(): Promise<void>;
 }
 
 function emptyProduct(p: Partial<Product>): Product {
@@ -101,37 +103,45 @@ export const useAppStore = create<AppState>((set, get) => ({
   ideas: [],
 
   async hydrate() {
-    const [settings, products, content, prompts, tasks, launches, ideas] =
-      await Promise.all([
-        storage.get<AppSettings>(K.settings, DEFAULT_SETTINGS),
-        storage.get<Product[]>(K.products, []),
-        storage.get<ContentItem[]>(K.content, []),
-        storage.get<PromptTemplate[]>(K.prompts, []),
-        storage.get<Task[]>(K.tasks, []),
-        storage.get<LaunchEvent[]>(K.launches, []),
-        storage.get<Idea[]>(K.ideas, []),
-      ]);
+    // Read everything in parallel, then run each blob through a shape guard.
+    // Bad/missing values fall back to safe defaults so a single malformed key
+    // never wedges the entire app.
+    const [
+      rawSettings,
+      rawProducts,
+      rawContent,
+      rawPrompts,
+      rawTasks,
+      rawLaunches,
+      rawIdeas,
+    ] = await Promise.all([
+      storage.get<unknown>(K.settings, null),
+      storage.get<unknown>(K.products, []),
+      storage.get<unknown>(K.content, []),
+      storage.get<unknown>(K.prompts, []),
+      storage.get<unknown>(K.tasks, []),
+      storage.get<unknown>(K.launches, []),
+      storage.get<unknown>(K.ideas, []),
+    ]);
 
-    // Merge any newly-added default settings keys for forward-compat
-    const mergedSettings: AppSettings = {
-      ...DEFAULT_SETTINGS,
-      ...settings,
-      providers: {
-        ...DEFAULT_SETTINGS.providers,
-        ...(settings?.providers ?? {}),
-      },
-    };
+    const settings = sanitizeSettings(rawSettings);
+    const products = sanitizers.products(rawProducts);
+    const content = sanitizers.content(rawContent);
+    const tasks = sanitizers.tasks(rawTasks);
+    const launches = sanitizers.launches(rawLaunches);
+    const ideas = sanitizers.ideas(rawIdeas);
+    const storedPrompts = sanitizers.prompts(rawPrompts);
 
-    // Seed built-in prompts on first run
+    // Seed built-in prompts on first run (or after a reset)
     const finalPrompts =
-      prompts && prompts.length > 0 ? prompts : buildDefaultPrompts();
-    if (!prompts || prompts.length === 0) {
+      storedPrompts.length > 0 ? storedPrompts : buildDefaultPrompts();
+    if (storedPrompts.length === 0) {
       await storage.set(K.prompts, finalPrompts);
     }
 
     set({
       hydrated: true,
-      settings: mergedSettings,
+      settings,
       products,
       content,
       prompts: finalPrompts,
@@ -394,14 +404,46 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   async importAll(json) {
     const data = JSON.parse(json);
-    if (data.settings) await storage.set(K.settings, data.settings);
-    if (data.products) await storage.set(K.products, data.products);
-    if (data.content) await storage.set(K.content, data.content);
-    if (data.prompts) await storage.set(K.prompts, data.prompts);
-    if (data.tasks) await storage.set(K.tasks, data.tasks);
-    if (data.launches) await storage.set(K.launches, data.launches);
-    if (data.ideas) await storage.set(K.ideas, data.ideas);
+    // Run every imported slice through the same validators used on startup.
+    // This protects against malformed or hostile backup files.
+    if (data.settings !== undefined) {
+      await storage.set(K.settings, sanitizeSettings(data.settings));
+    }
+    if (data.products !== undefined) {
+      await storage.set(K.products, sanitizers.products(data.products));
+    }
+    if (data.content !== undefined) {
+      await storage.set(K.content, sanitizers.content(data.content));
+    }
+    if (data.prompts !== undefined) {
+      await storage.set(K.prompts, sanitizers.prompts(data.prompts));
+    }
+    if (data.tasks !== undefined) {
+      await storage.set(K.tasks, sanitizers.tasks(data.tasks));
+    }
+    if (data.launches !== undefined) {
+      await storage.set(K.launches, sanitizers.launches(data.launches));
+    }
+    if (data.ideas !== undefined) {
+      await storage.set(K.ideas, sanitizers.ideas(data.ideas));
+    }
     await get().hydrate();
+  },
+  async resetWorkspace() {
+    await storage.clearAll();
+    // Re-seed built-in prompts so the app remains usable immediately
+    // after a reset, without requiring a full page reload.
+    const seeded = buildDefaultPrompts();
+    await storage.set(K.prompts, seeded);
+    set({
+      settings: DEFAULT_SETTINGS,
+      products: [],
+      content: [],
+      prompts: seeded,
+      tasks: [],
+      launches: [],
+      ideas: [],
+    });
   },
 }));
 

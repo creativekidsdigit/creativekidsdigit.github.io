@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useId, useState } from "react";
 import {
   Plus,
   Star,
@@ -235,20 +235,33 @@ function PromptEditor({
 }) {
   const [v, setV] = useState<PromptTemplate>(value);
 
+  // Stable ids so labels associate with their controls.
+  const idName = useId();
+  const idCategory = useId();
+  const idDescription = useId();
+  const idSystem = useId();
+  const idUser = useId();
+
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">Name</label>
+          <label htmlFor={idName} className="label">
+            Name
+          </label>
           <input
+            id={idName}
             className="input"
             value={v.name}
             onChange={(e) => setV({ ...v, name: e.target.value })}
           />
         </div>
         <div>
-          <label className="label">Category</label>
+          <label htmlFor={idCategory} className="label">
+            Category
+          </label>
           <select
+            id={idCategory}
             className="input"
             value={v.category}
             onChange={(e) => setV({ ...v, category: e.target.value })}
@@ -262,26 +275,33 @@ function PromptEditor({
         </div>
       </div>
       <div>
-        <label className="label">Description</label>
+        <label htmlFor={idDescription} className="label">
+          Description
+        </label>
         <input
+          id={idDescription}
           className="input"
           value={v.description}
           onChange={(e) => setV({ ...v, description: e.target.value })}
         />
       </div>
       <div>
-        <label className="label">System prompt</label>
+        <label htmlFor={idSystem} className="label">
+          System prompt
+        </label>
         <textarea
+          id={idSystem}
           className="input min-h-[120px] font-mono text-xs"
           value={v.systemPrompt}
           onChange={(e) => setV({ ...v, systemPrompt: e.target.value })}
         />
       </div>
       <div>
-        <label className="label">
+        <label htmlFor={idUser} className="label">
           User prompt template — supports {"{{product.title}}, {{product.audience}}, {{settings.brandVoice}}"} etc.
         </label>
         <textarea
+          id={idUser}
           className="input min-h-[260px] font-mono text-xs"
           value={v.userPromptTemplate}
           onChange={(e) => setV({ ...v, userPromptTemplate: e.target.value })}

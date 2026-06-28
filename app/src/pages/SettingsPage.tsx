@@ -1,5 +1,13 @@
-import { useState } from "react";
-import { Eye, EyeOff, Download, Upload, RefreshCcw, Check } from "lucide-react";
+import { useId, useState } from "react";
+import {
+  Eye,
+  EyeOff,
+  Download,
+  Upload,
+  RefreshCcw,
+  Check,
+  AlertTriangle,
+} from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { listProviders, generate } from "@/lib/ai";
 import { PageHeader, SectionCard } from "@/components/ui";
@@ -13,6 +21,16 @@ export default function SettingsPage() {
   const setTheme = useAppStore((s) => s.setTheme);
   const exportAll = useAppStore((s) => s.exportAll);
   const importAll = useAppStore((s) => s.importAll);
+  const resetWorkspace = useAppStore((s) => s.resetWorkspace);
+
+  // Stable ids for label/htmlFor associations
+  const idProvider = useId();
+  const idModelTop = useId();
+  const idBrandVoice = useId();
+  const idAudience = useId();
+  const idTheme = useId();
+  const idAutosave = useId();
+  const idImport = useId();
 
   return (
     <>
@@ -26,8 +44,11 @@ export default function SettingsPage() {
           <SectionCard title="Active AI provider">
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="label">Provider</label>
+                <label htmlFor={idProvider} className="label">
+                  Provider
+                </label>
                 <select
+                  id={idProvider}
                   className="input"
                   value={settings.activeProvider}
                   onChange={(e) =>
@@ -42,8 +63,11 @@ export default function SettingsPage() {
                 </select>
               </div>
               <div>
-                <label className="label">Model</label>
+                <label htmlFor={idModelTop} className="label">
+                  Model
+                </label>
                 <input
+                  id={idModelTop}
                   className="input"
                   value={settings.providers[settings.activeProvider].model}
                   onChange={(e) =>
@@ -77,7 +101,11 @@ export default function SettingsPage() {
               This is injected into every generation. Tell the AI exactly how
               your brand should sound.
             </p>
+            <label htmlFor={idBrandVoice} className="sr-only">
+              Brand voice
+            </label>
             <textarea
+              id={idBrandVoice}
               className="input min-h-[140px]"
               value={settings.brandVoice}
               onChange={(e) => setSettings({ brandVoice: e.target.value })}
@@ -85,7 +113,11 @@ export default function SettingsPage() {
           </SectionCard>
 
           <SectionCard title="Default audience">
+            <label htmlFor={idAudience} className="sr-only">
+              Default audience
+            </label>
             <input
+              id={idAudience}
               className="input"
               value={settings.defaultAudience}
               onChange={(e) => setSettings({ defaultAudience: e.target.value })}
@@ -95,8 +127,11 @@ export default function SettingsPage() {
 
         <div className="space-y-5">
           <SectionCard title="Appearance">
-            <label className="label">Theme</label>
+            <label htmlFor={idTheme} className="label">
+              Theme
+            </label>
             <select
+              id={idTheme}
               className="input"
               value={settings.theme}
               onChange={(e) =>
@@ -108,8 +143,11 @@ export default function SettingsPage() {
               <option value="dark">Dark</option>
             </select>
 
-            <label className="label mt-4">Autosave product edits</label>
+            <label htmlFor={idAutosave} className="label mt-4">
+              Autosave product edits
+            </label>
             <select
+              id={idAutosave}
               className="input"
               value={settings.autosave ? "on" : "off"}
               onChange={(e) => setSettings({ autosave: e.target.value === "on" })}
@@ -144,9 +182,10 @@ export default function SettingsPage() {
                 <Download className="h-4 w-4" /> Export all data
               </button>
 
-              <label className="btn-secondary cursor-pointer">
+              <label htmlFor={idImport} className="btn-secondary cursor-pointer">
                 <Upload className="h-4 w-4" /> Import backup
                 <input
+                  id={idImport}
                   type="file"
                   accept="application/json"
                   className="hidden"
@@ -163,6 +202,24 @@ export default function SettingsPage() {
                   }}
                 />
               </label>
+
+              <button
+                className="btn-secondary border-rose-300 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/30"
+                onClick={async () => {
+                  const ok = window.confirm(
+                    "Reset workspace?\n\nThis will delete all products, " +
+                      "content, prompts, tasks, launches, ideas, and " +
+                      "settings stored in this browser. API keys will be " +
+                      "cleared. This cannot be undone.\n\nUse Export first " +
+                      "if you want a backup."
+                  );
+                  if (!ok) return;
+                  await resetWorkspace();
+                  toast.success("Workspace reset to factory state");
+                }}
+              >
+                <AlertTriangle className="h-4 w-4" /> Reset workspace
+              </button>
             </div>
           </SectionCard>
 
@@ -186,6 +243,11 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
   const adapter = listProviders().find((p) => p.id === providerId)!;
   const [showKey, setShowKey] = useState(false);
   const [testing, setTesting] = useState(false);
+
+  // Stable ids per provider row
+  const idApiKey = useId();
+  const idModel = useId();
+  const idBaseUrl = useId();
 
   async function test() {
     setTesting(true);
@@ -226,9 +288,12 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {adapter.needsApiKey && (
           <div className="sm:col-span-2">
-            <label className="label">API key</label>
+            <label htmlFor={idApiKey} className="label">
+              API key
+            </label>
             <div className="flex items-center gap-2">
               <input
+                id={idApiKey}
                 className="input"
                 type={showKey ? "text" : "password"}
                 value={cfg.apiKey ?? ""}
@@ -239,7 +304,10 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
                 autoComplete="off"
               />
               <button
+                type="button"
                 className="btn-ghost h-9 w-9 p-0"
+                aria-label={showKey ? "Hide API key" : "Show API key"}
+                aria-pressed={showKey}
                 onClick={() => setShowKey((v) => !v)}
               >
                 {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -252,8 +320,11 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
           </div>
         )}
         <div>
-          <label className="label">Model</label>
+          <label htmlFor={idModel} className="label">
+            Model
+          </label>
           <input
+            id={idModel}
             className="input"
             value={cfg.model}
             onChange={(e) => setProvider(providerId, { model: e.target.value })}
@@ -266,8 +337,11 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
           </datalist>
         </div>
         <div>
-          <label className="label">Base URL (optional)</label>
+          <label htmlFor={idBaseUrl} className="label">
+            Base URL (optional)
+          </label>
           <input
+            id={idBaseUrl}
             className="input"
             value={cfg.baseUrl ?? ""}
             placeholder={adapter.defaultBaseUrl}
@@ -278,6 +352,7 @@ function ProviderRow({ providerId }: { providerId: ProviderId }) {
         </div>
         <div className="sm:col-span-2 flex items-center justify-end gap-2">
           <button
+            type="button"
             className="btn-secondary"
             disabled={testing}
             onClick={test}

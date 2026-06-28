@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { Platform, Product, ProductStatus } from "@/types";
 
 const PLATFORMS: Platform[] = [
@@ -49,6 +49,20 @@ export default function ProductForm({
     ...initial,
   });
 
+  // One stable id per field so labels are properly associated with controls.
+  // Each useId() returns a unique, SSR-safe string per form instance.
+  const idTitle = useId();
+  const idCategory = useId();
+  const idAudience = useId();
+  const idProblem = useId();
+  const idBenefits = useId();
+  const idKeywords = useId();
+  const idPricing = useId();
+  const idPlatform = useId();
+  const idStatus = useId();
+  const idLaunch = useId();
+  const idNotes = useId();
+
   // Lightweight autosave debounce
   useEffect(() => {
     if (!autosave) return;
@@ -70,8 +84,11 @@ export default function ProductForm({
       }}
     >
       <div className="sm:col-span-2">
-        <label className="label">Title</label>
+        <label htmlFor={idTitle} className="label">
+          Title
+        </label>
         <input
+          id={idTitle}
           className="input"
           value={v.title ?? ""}
           onChange={(e) => update("title", e.target.value)}
@@ -81,8 +98,11 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label className="label">Category</label>
+        <label htmlFor={idCategory} className="label">
+          Category
+        </label>
         <input
+          id={idCategory}
           className="input"
           value={v.category ?? ""}
           onChange={(e) => update("category", e.target.value)}
@@ -91,8 +111,11 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label className="label">Audience</label>
+        <label htmlFor={idAudience} className="label">
+          Audience
+        </label>
         <input
+          id={idAudience}
           className="input"
           value={v.audience ?? ""}
           onChange={(e) => update("audience", e.target.value)}
@@ -101,8 +124,11 @@ export default function ProductForm({
       </div>
 
       <div className="sm:col-span-2">
-        <label className="label">Problem solved</label>
+        <label htmlFor={idProblem} className="label">
+          Problem solved
+        </label>
         <textarea
+          id={idProblem}
           className="input min-h-[80px]"
           value={v.problemSolved ?? ""}
           onChange={(e) => update("problemSolved", e.target.value)}
@@ -111,8 +137,11 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label className="label">Benefits (one per line)</label>
+        <label htmlFor={idBenefits} className="label">
+          Benefits (one per line)
+        </label>
         <textarea
+          id={idBenefits}
           className="input min-h-[100px]"
           value={(v.benefits ?? []).join("\n")}
           onChange={(e) =>
@@ -129,8 +158,11 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label className="label">Keywords (comma separated)</label>
+        <label htmlFor={idKeywords} className="label">
+          Keywords (comma separated)
+        </label>
         <textarea
+          id={idKeywords}
           className="input min-h-[100px]"
           value={(v.keywords ?? []).join(", ")}
           onChange={(e) =>
@@ -147,8 +179,11 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label className="label">Pricing</label>
+        <label htmlFor={idPricing} className="label">
+          Pricing
+        </label>
         <input
+          id={idPricing}
           className="input"
           value={v.pricing ?? ""}
           onChange={(e) => update("pricing", e.target.value)}
@@ -157,8 +192,11 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label className="label">Platform</label>
+        <label htmlFor={idPlatform} className="label">
+          Platform
+        </label>
         <select
+          id={idPlatform}
           className="input"
           value={v.platform}
           onChange={(e) => update("platform", e.target.value as Platform)}
@@ -172,8 +210,11 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label className="label">Status</label>
+        <label htmlFor={idStatus} className="label">
+          Status
+        </label>
         <select
+          id={idStatus}
           className="input"
           value={v.status}
           onChange={(e) => update("status", e.target.value as ProductStatus)}
@@ -187,8 +228,11 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label className="label">Launch date</label>
+        <label htmlFor={idLaunch} className="label">
+          Launch date
+        </label>
         <input
+          id={idLaunch}
           type="date"
           className="input"
           value={v.launchDate ?? ""}
@@ -197,8 +241,11 @@ export default function ProductForm({
       </div>
 
       <div className="sm:col-span-2">
-        <label className="label">Notes</label>
+        <label htmlFor={idNotes} className="label">
+          Notes
+        </label>
         <textarea
+          id={idNotes}
           className="input min-h-[100px]"
           value={v.notes ?? ""}
           onChange={(e) => update("notes", e.target.value)}
