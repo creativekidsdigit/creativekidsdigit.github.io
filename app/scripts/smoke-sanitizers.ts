@@ -19,6 +19,13 @@ import type {
   ImporterSetup,
 } from "../src/lib/importers/types";
 import type { PerformanceSnapshot } from "../src/types";
+import {
+  validateBackupHeader,
+  summarizeImportSlice,
+  totalDropped,
+  formatDroppedBreakdown,
+  type ImportSummary,
+} from "../src/lib/backupImport";
 
 let failed = 0;
 function check(name: string, condition: boolean, detail?: unknown) {
@@ -2176,6 +2183,219 @@ check(
     return p.rows.every(
       (r) => r.kind === "error" || r.snapshot.campaignId === "campaign-XYZ"
     );
+  })()
+);
+
+// =========================================================================
+// PR #65 (Reliability) — Backup import header + slice summarization
+// =========================================================================
+
+console.log("\n== backup import — validateBackupHeader ==\n");
+
+check(
+  "header: missing version defaults to v1, OK",
+  (() => {
+    const r = validateBackupHeader({ exportedAt: "2026-01-01" });
+    return r.ok === true && r.version === 1;
+  })()
+);
+
+check(
+  "header: explicit v1 is OK",
+  (() => {
+    const r = validateBackupHeader({ version: 1, products: [] });
+    return r.ok === true && r.version === 1;
+  })()
+);
+
+check(
+  "header: v2 is rejected with descriptive error",
+  (() => {
+    const r = validateBackupHeader({ version: 2, products: [] });
+    return (
+      r.ok === false &&
+      r.version === 2 &&
+      r.error.includes("v2") &&
+      r.error.includes("newer")
+    );
+  })()
+);
+
+check(
+  "header: v3 is rejected (any version > 1)",
+  (() => {
+    const r = validateBackupHeader({ version: 3 });
+    return r.ok === false && r.version === 3;
+  })()
+);
+
+check(
+  "header: v0 is rejected (any version < 1)",
+  (() => {
+    const r = validateBackupHeader({ version: 0 });
+    return r.ok === false && r.version === 0;
+  })()
+);
+
+check(
+  "header: null is rejected with shape error",
+  (() => {
+    const r = validateBackupHeader(null);
+    return r.ok === false && r.error.includes("shape");
+  })()
+);
+
+check(
+  "header: string is rejected with shape error",
+  (() => {
+    const r = validateBackupHeader("oops");
+    return r.ok === false && r.error.includes("shape");
+  })()
+);
+
+check(
+  "header: array at top level is rejected (must be object)",
+  (() => {
+    const r = validateBackupHeader([1, 2, 3]);
+    return r.ok === false && r.error.includes("shape");
+  })()
+);
+
+check(
+  "header: non-finite version (NaN) falls back to 1",
+  (() => {
+    const r = validateBackupHeader({ version: NaN });
+    return r.ok === true && r.version === 1;
+  })()
+);
+
+console.log("\n== backup import — summarizeImportSlice ==\n");
+
+check(
+  "slice: undefined input → 0 kept, 0 dropped",
+  (() => {
+    const r = summarizeImportSlice(undefined, sanitizers.products);
+    return r.kept.length === 0 && r.droppedCount === 0;
+  })()
+);
+
+check(
+  "slice: array of 3 valid products → 3 kept, 0 dropped",
+  (() => {
+    const r = summarizeImportSlice(
+      [
+        { id: "p1", title: "A" },
+        { id: "p2", title: "B" },
+        { id: "p3", title: "C" },
+      ],
+      sanitizers.products
+    );
+    return r.kept.length === 3 && r.droppedCount === 0;
+  })()
+);
+
+check(
+  "slice: 5 mixed (3 valid, 2 malformed) → 3 kept, 2 dropped",
+  (() => {
+    const r = summarizeImportSlice(
+      [
+        { id: "p1", title: "A" },
+        null,
+        { id: "p2", title: "B" },
+        { /* no id */ title: "C" },
+        { id: "p3", title: "D" },
+      ],
+      sanitizers.products
+    );
+    return r.kept.length === 3 && r.droppedCount === 2;
+  })()
+);
+
+check(
+  "slice: all malformed → 0 kept, N dropped",
+  (() => {
+    const r = summarizeImportSlice(
+      [null, undefined, "garbage", { junk: true }],
+      sanitizers.products
+    );
+    return r.kept.length === 0 && r.droppedCount === 4;
+  })()
+);
+
+check(
+  "slice: wrong shape (object instead of array) → counts as 1 drop",
+  (() => {
+    const r = summarizeImportSlice(
+      { not: "an array" },
+      sanitizers.products
+    );
+    return r.kept.length === 0 && r.droppedCount === 1;
+  })()
+);
+
+check(
+  "slice: string instead of array → 1 drop",
+  (() => {
+    const r = summarizeImportSlice("oops", sanitizers.products);
+    return r.kept.length === 0 && r.droppedCount === 1;
+  })()
+);
+
+check(
+  "slice: empty array → 0 kept, 0 dropped",
+  (() => {
+    const r = summarizeImportSlice([], sanitizers.products);
+    return r.kept.length === 0 && r.droppedCount === 0;
+  })()
+);
+
+console.log("\n== backup import — totalDropped + formatDroppedBreakdown ==\n");
+
+check(
+  "totalDropped: empty summary → 0",
+  totalDropped({ imported: {}, dropped: {} }) === 0
+);
+
+check(
+  "totalDropped: sums across slices",
+  (() => {
+    const s: ImportSummary = {
+      imported: { products: 10 },
+      dropped: { products: 3, campaigns: 2, keywords: 0 },
+    };
+    return totalDropped(s) === 5;
+  })()
+);
+
+check(
+  "formatDroppedBreakdown: empty → empty string",
+  formatDroppedBreakdown({ imported: {}, dropped: {} }) === ""
+);
+
+check(
+  "formatDroppedBreakdown: lists only non-zero entries",
+  (() => {
+    const s: ImportSummary = {
+      imported: {},
+      dropped: { products: 3, campaigns: 0, keywords: 2 },
+    };
+    const out = formatDroppedBreakdown(s);
+    return (
+      out.includes("3 products") &&
+      out.includes("2 keywords") &&
+      !out.includes("campaigns")
+    );
+  })()
+);
+
+check(
+  "formatDroppedBreakdown: single slice formatted cleanly",
+  (() => {
+    const s: ImportSummary = {
+      imported: {},
+      dropped: { perfSnapshots: 7 },
+    };
+    return formatDroppedBreakdown(s) === "7 perfSnapshots";
   })()
 );
 

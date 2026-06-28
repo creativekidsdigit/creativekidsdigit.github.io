@@ -3,6 +3,11 @@ import { storage, K } from "@/lib/storage";
 import { uid, now } from "@/lib/id";
 import { DEFAULT_SETTINGS, buildDefaultPrompts } from "@/lib/defaults";
 import { sanitizers, sanitizeSettings } from "@/lib/migrate";
+import {
+  validateBackupHeader,
+  summarizeImportSlice,
+  type ImportSummary,
+} from "@/lib/backupImport";
 import type {
   AppSettings,
   Campaign,
@@ -113,7 +118,7 @@ interface AppState {
 
   // utility
   exportAll(): Promise<string>;
-  importAll(json: string): Promise<void>;
+  importAll(json: string): Promise<ImportSummary>;
   resetWorkspace(): Promise<void>;
 }
 
@@ -738,52 +743,81 @@ export const useAppStore = create<AppState>((set, get) => ({
     );
   },
   async importAll(json) {
-    const data = JSON.parse(json);
-    // Run every imported slice through the same validators used on startup.
-    // This protects against malformed or hostile backup files.
-    if (data.settings !== undefined) {
-      await storage.set(K.settings, sanitizeSettings(data.settings));
+    // 1. Parse. Bad JSON → fail with a user-facing message rather than
+    //    a raw SyntaxError surfacing through the ErrorBoundary.
+    let data: unknown;
+    try {
+      data = JSON.parse(json);
+    } catch {
+      throw new Error("Backup file is not valid JSON.");
     }
-    if (data.products !== undefined) {
-      await storage.set(K.products, sanitizers.products(data.products));
+
+    // 2. Validate the top-level shape and the version field. A future v2
+    //    backup imported by today's v1 app would silently truncate any
+    //    newly-added fields — refuse instead.
+    const header = validateBackupHeader(data);
+    if (!header.ok) throw new Error(header.error);
+
+    const obj = data as Record<string, unknown>;
+    const summary: ImportSummary = { imported: {}, dropped: {} };
+
+    // 3. Per-slice import. Each slice runs through its sanitizer and we
+    //    record both how many were kept and how many were silently
+    //    dropped, so the caller can show a precise "X imported, Y skipped"
+    //    message instead of a vague "done".
+    async function applySlice<T>(
+      storageKey: string,
+      name: string,
+      raw: unknown,
+      sanitize: (v: unknown) => T[]
+    ): Promise<void> {
+      const { kept, droppedCount } = summarizeImportSlice(raw, sanitize);
+      if (raw === undefined) return; // slice absent — neither imported nor dropped
+      summary.imported[name] = kept.length;
+      if (droppedCount > 0) summary.dropped[name] = droppedCount;
+      await storage.set(storageKey, kept);
     }
-    if (data.content !== undefined) {
-      await storage.set(K.content, sanitizers.content(data.content));
+
+    await applySlice(K.products, "products", obj.products, sanitizers.products);
+    await applySlice(K.content, "content", obj.content, sanitizers.content);
+    await applySlice(K.prompts, "prompts", obj.prompts, sanitizers.prompts);
+    await applySlice(K.tasks, "tasks", obj.tasks, sanitizers.tasks);
+    await applySlice(K.launches, "launches", obj.launches, sanitizers.launches);
+    await applySlice(K.ideas, "ideas", obj.ideas, sanitizers.ideas);
+    await applySlice(
+      K.campaigns,
+      "campaigns",
+      obj.campaigns,
+      sanitizers.campaigns
+    );
+    await applySlice(
+      K.perfSnapshots,
+      "perfSnapshots",
+      obj.perfSnapshots,
+      sanitizers.perfSnapshots
+    );
+    await applySlice(
+      K.opportunities,
+      "opportunities",
+      obj.opportunities,
+      sanitizers.opportunities
+    );
+    await applySlice(K.keywords, "keywords", obj.keywords, sanitizers.keywords);
+    await applySlice(
+      K.competitors,
+      "competitors",
+      obj.competitors,
+      sanitizers.competitors
+    );
+
+    // Settings is a single object, not an array. Sanitize and write.
+    if (obj.settings !== undefined) {
+      await storage.set(K.settings, sanitizeSettings(obj.settings));
+      summary.imported.settings = 1;
     }
-    if (data.prompts !== undefined) {
-      await storage.set(K.prompts, sanitizers.prompts(data.prompts));
-    }
-    if (data.tasks !== undefined) {
-      await storage.set(K.tasks, sanitizers.tasks(data.tasks));
-    }
-    if (data.launches !== undefined) {
-      await storage.set(K.launches, sanitizers.launches(data.launches));
-    }
-    if (data.ideas !== undefined) {
-      await storage.set(K.ideas, sanitizers.ideas(data.ideas));
-    }
-    if (data.campaigns !== undefined) {
-      await storage.set(K.campaigns, sanitizers.campaigns(data.campaigns));
-    }
-    if (data.perfSnapshots !== undefined) {
-      await storage.set(
-        K.perfSnapshots,
-        sanitizers.perfSnapshots(data.perfSnapshots)
-      );
-    }
-    if (data.opportunities !== undefined) {
-      await storage.set(
-        K.opportunities,
-        sanitizers.opportunities(data.opportunities)
-      );
-    }
-    if (data.keywords !== undefined) {
-      await storage.set(K.keywords, sanitizers.keywords(data.keywords));
-    }
-    if (data.competitors !== undefined) {
-      await storage.set(K.competitors, sanitizers.competitors(data.competitors));
-    }
+
     await get().hydrate();
+    return summary;
   },
   async resetWorkspace() {
     await storage.clearAll();

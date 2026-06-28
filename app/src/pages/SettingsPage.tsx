@@ -10,6 +10,10 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { listProviders, generate } from "@/lib/ai";
+import {
+  totalDropped,
+  formatDroppedBreakdown,
+} from "@/lib/backupImport";
 import { PageHeader, SectionCard } from "@/components/ui";
 import { toast } from "@/components/Toast";
 import type { ProviderId } from "@/types";
@@ -192,10 +196,24 @@ export default function SettingsPage() {
                   onChange={async (e) => {
                     const f = e.target.files?.[0];
                     if (!f) return;
-                    const text = await f.text();
+                    // Reset the input so re-selecting the same file fires
+                    // onChange again (e.g. after a transient failure).
+                    e.target.value = "";
                     try {
-                      await importAll(text);
-                      toast.success("Backup imported");
+                      // f.text() can theoretically reject on a corrupted
+                      // blob — keep it inside the try block.
+                      const text = await f.text();
+                      const summary = await importAll(text);
+                      const dropped = totalDropped(summary);
+                      if (dropped > 0) {
+                        const breakdown = formatDroppedBreakdown(summary);
+                        toast.error(
+                          `Backup imported, but ${dropped} entr${dropped === 1 ? "y was" : "ies were"} skipped because of malformed data` +
+                            (breakdown ? ` (${breakdown}).` : ".")
+                        );
+                      } else {
+                        toast.success("Backup imported");
+                      }
                     } catch (err) {
                       toast.error("Import failed: " + (err as Error).message);
                     }

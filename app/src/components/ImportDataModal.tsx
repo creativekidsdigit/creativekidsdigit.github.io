@@ -127,30 +127,47 @@ export default function ImportDataModal({
     if (!preview) return;
     setBusy(true);
     setError(null);
-    try {
-      const toImport = preview.rows.filter(
-        (r) => r.kind === "ok" || (includeSkipped && r.kind === "skip")
-      );
-      let saved = 0;
-      for (const row of toImport) {
-        if (row.kind === "error") continue;
-        // Pass through as Partial<PerformanceSnapshot> — the store fills
-        // in id / createdAt / updatedAt and defaults missing metrics to 0.
+    const toImport = preview.rows.filter(
+      (r) => r.kind === "ok" || (includeSkipped && r.kind === "skip")
+    );
+    // Continue on per-row failure so one bad row doesn't strand the rest.
+    // Each addPerformance is its own IDB transaction, so partial progress
+    // is durably saved even if a later row fails. We collect failures and
+    // surface them as a single summary at the end.
+    let saved = 0;
+    const failures: { date: string; reason: string }[] = [];
+    for (const row of toImport) {
+      if (row.kind === "error") continue;
+      try {
         const draft: Partial<PerformanceSnapshot> = row.snapshot;
         await addPerformance(draft);
         saved++;
+      } catch (err) {
+        failures.push({
+          date: row.snapshot.date,
+          reason: (err as Error).message || "Unknown error",
+        });
       }
+    }
+    setBusy(false);
+    if (failures.length === 0) {
       toast.success(
-        saved === 1
-          ? "Imported 1 snapshot"
-          : `Imported ${saved} snapshots`
+        saved === 1 ? "Imported 1 snapshot" : `Imported ${saved} snapshots`
       );
       handleClose();
-    } catch (err) {
-      setError((err as Error).message || "Import failed partway through.");
-    } finally {
-      setBusy(false);
+      return;
     }
+    // Partial success: keep the modal open so the user can see what failed.
+    toast.error(
+      `Imported ${saved} of ${saved + failures.length}. ${failures.length} failed.`
+    );
+    const head = failures
+      .slice(0, 5)
+      .map((f) => `${f.date}: ${f.reason}`)
+      .join("\n");
+    const tail =
+      failures.length > 5 ? `\n…and ${failures.length - 5} more` : "";
+    setError(`Some rows could not be saved:\n${head}${tail}`);
   }
 
   // Detect mapping problems for the gate on the Preview button.

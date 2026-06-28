@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Shell from "./components/Shell";
-import { ToastViewport } from "./components/Toast";
+import { ToastViewport, toast } from "./components/Toast";
+import { STORAGE_ERROR_EVENT } from "./lib/storage";
 import DashboardPage from "./pages/DashboardPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
@@ -23,6 +25,30 @@ import OpportunityDetailPage from "./pages/OpportunityDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
+  // Surface persistent-write failures to the user so silent IDB rejections
+  // (out-of-quota, transaction crash, incognito storage policy, etc.) don't
+  // become silent data loss. storage.ts dispatches one event per failure;
+  // we throttle to one toast per minute to avoid spamming when the user
+  // continues to edit while quota is full.
+  const lastNotifiedRef = useRef<number>(0);
+  useEffect(() => {
+    function handler(e: Event) {
+      const ce = e as CustomEvent<{ op: string; key: string; error: unknown }>;
+      const now = Date.now();
+      if (now - lastNotifiedRef.current < 60_000) return;
+      lastNotifiedRef.current = now;
+      toast.error(
+        "Couldn't save to local storage — your browser may be out of room. " +
+          "Export a backup from Settings before continuing."
+      );
+      // Keep the diagnostic record for the developer console.
+      // eslint-disable-next-line no-console
+      console.warn("[App] storage error event", ce.detail);
+    }
+    window.addEventListener(STORAGE_ERROR_EVENT, handler);
+    return () => window.removeEventListener(STORAGE_ERROR_EVENT, handler);
+  }, []);
+
   return (
     <>
       <Routes>
