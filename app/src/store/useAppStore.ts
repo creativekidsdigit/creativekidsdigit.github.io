@@ -5,9 +5,11 @@ import { DEFAULT_SETTINGS, buildDefaultPrompts } from "@/lib/defaults";
 import { sanitizers, sanitizeSettings } from "@/lib/migrate";
 import type {
   AppSettings,
+  Campaign,
   ContentItem,
   Idea,
   LaunchEvent,
+  PerformanceSnapshot,
   Product,
   PromptTemplate,
   Task,
@@ -22,6 +24,8 @@ interface AppState {
   tasks: Task[];
   launches: LaunchEvent[];
   ideas: Idea[];
+  campaigns: Campaign[];
+  perfSnapshots: PerformanceSnapshot[];
 
   hydrate(): Promise<void>;
 
@@ -67,6 +71,16 @@ interface AppState {
   togglePinIdea(id: string): Promise<void>;
   deleteIdea(id: string): Promise<void>;
 
+  // campaigns
+  createCampaign(c: Partial<Campaign>): Promise<Campaign>;
+  updateCampaign(id: string, patch: Partial<Campaign>): Promise<void>;
+  deleteCampaign(id: string): Promise<void>;
+
+  // performance snapshots
+  addPerformance(p: Partial<PerformanceSnapshot>): Promise<PerformanceSnapshot>;
+  updatePerformance(id: string, patch: Partial<PerformanceSnapshot>): Promise<void>;
+  deletePerformance(id: string): Promise<void>;
+
   // utility
   exportAll(): Promise<string>;
   importAll(json: string): Promise<void>;
@@ -101,6 +115,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   tasks: [],
   launches: [],
   ideas: [],
+  campaigns: [],
+  perfSnapshots: [],
 
   async hydrate() {
     // Read everything in parallel, then run each blob through a shape guard.
@@ -114,6 +130,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       rawTasks,
       rawLaunches,
       rawIdeas,
+      rawCampaigns,
+      rawPerf,
     ] = await Promise.all([
       storage.get<unknown>(K.settings, null),
       storage.get<unknown>(K.products, []),
@@ -122,6 +140,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       storage.get<unknown>(K.tasks, []),
       storage.get<unknown>(K.launches, []),
       storage.get<unknown>(K.ideas, []),
+      storage.get<unknown>(K.campaigns, []),
+      storage.get<unknown>(K.perfSnapshots, []),
     ]);
 
     const settings = sanitizeSettings(rawSettings);
@@ -130,6 +150,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     const tasks = sanitizers.tasks(rawTasks);
     const launches = sanitizers.launches(rawLaunches);
     const ideas = sanitizers.ideas(rawIdeas);
+    const campaigns = sanitizers.campaigns(rawCampaigns);
+    const perfSnapshots = sanitizers.perfSnapshots(rawPerf);
     const storedPrompts = sanitizers.prompts(rawPrompts);
 
     // Seed built-in prompts on first run (or after a reset)
@@ -148,6 +170,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       tasks,
       launches,
       ideas,
+      campaigns,
+      perfSnapshots,
     });
   },
 
@@ -383,6 +407,113 @@ export const useAppStore = create<AppState>((set, get) => ({
     await storage.set(K.ideas, next);
   },
 
+  // campaigns
+  async createCampaign(c) {
+    const item: Campaign = {
+      id: uid("cmp"),
+      name: c.name ?? "Untitled campaign",
+      productIds: c.productIds ?? [],
+      platform: c.platform ?? "pinterest",
+      goal: c.goal ?? "traffic",
+      startDate:
+        c.startDate ?? new Date().toISOString().slice(0, 10),
+      endDate: c.endDate,
+      budget: c.budget ?? 0,
+      status: c.status ?? "draft",
+      notes: c.notes ?? "",
+      tags: c.tags ?? [],
+      audienceNotes: c.audienceNotes ?? "",
+      lessonsLearned: c.lessonsLearned ?? "",
+      optimizationIdeas: c.optimizationIdeas ?? "",
+      versions: [],
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    const next = [item, ...get().campaigns];
+    set({ campaigns: next });
+    await storage.set(K.campaigns, next);
+    return item;
+  },
+  async updateCampaign(id, patch) {
+    const next = get().campaigns.map((c) => {
+      if (c.id !== id) return c;
+      // Editorial version: push a snapshot when any of the long-form fields
+      // changes, capped at 20 entries. Mirrors PromptTemplate behavior.
+      const editorialChanged =
+        (patch.notes !== undefined && patch.notes !== c.notes) ||
+        (patch.lessonsLearned !== undefined &&
+          patch.lessonsLearned !== c.lessonsLearned) ||
+        (patch.optimizationIdeas !== undefined &&
+          patch.optimizationIdeas !== c.optimizationIdeas);
+      const versions = editorialChanged
+        ? [
+            ...c.versions,
+            {
+              ts: now(),
+              notes: c.notes,
+              lessonsLearned: c.lessonsLearned,
+              optimizationIdeas: c.optimizationIdeas,
+            },
+          ].slice(-20)
+        : c.versions;
+      return { ...c, ...patch, versions, updatedAt: now() };
+    });
+    set({ campaigns: next });
+    await storage.set(K.campaigns, next);
+  },
+  async deleteCampaign(id) {
+    const nextCampaigns = get().campaigns.filter((c) => c.id !== id);
+    // Cascade-delete the campaign's performance snapshots. Content items
+    // are intentionally NOT deleted — they keep their campaignId but become
+    // orphaned references, which the UI handles by ignoring unknown ids.
+    const nextPerf = get().perfSnapshots.filter((p) => p.campaignId !== id);
+    set({ campaigns: nextCampaigns, perfSnapshots: nextPerf });
+    await Promise.all([
+      storage.set(K.campaigns, nextCampaigns),
+      storage.set(K.perfSnapshots, nextPerf),
+    ]);
+  },
+
+  // performance snapshots
+  async addPerformance(p) {
+    const item: PerformanceSnapshot = {
+      id: uid("perf"),
+      campaignId: p.campaignId ?? "",
+      date: p.date ?? new Date().toISOString().slice(0, 10),
+      impressions: p.impressions ?? 0,
+      clicks: p.clicks ?? 0,
+      saves: p.saves ?? 0,
+      shares: p.shares ?? 0,
+      comments: p.comments ?? 0,
+      emailOpens: p.emailOpens ?? 0,
+      emailClicks: p.emailClicks ?? 0,
+      websiteVisits: p.websiteVisits ?? 0,
+      productPageVisits: p.productPageVisits ?? 0,
+      sales: p.sales ?? 0,
+      revenue: p.revenue ?? 0,
+      cost: p.cost ?? 0,
+      notes: p.notes ?? "",
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    const next = [item, ...get().perfSnapshots];
+    set({ perfSnapshots: next });
+    await storage.set(K.perfSnapshots, next);
+    return item;
+  },
+  async updatePerformance(id, patch) {
+    const next = get().perfSnapshots.map((p) =>
+      p.id === id ? { ...p, ...patch, updatedAt: now() } : p
+    );
+    set({ perfSnapshots: next });
+    await storage.set(K.perfSnapshots, next);
+  },
+  async deletePerformance(id) {
+    const next = get().perfSnapshots.filter((p) => p.id !== id);
+    set({ perfSnapshots: next });
+    await storage.set(K.perfSnapshots, next);
+  },
+
   // utility
   async exportAll() {
     const s = get();
@@ -397,6 +528,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         tasks: s.tasks,
         launches: s.launches,
         ideas: s.ideas,
+        campaigns: s.campaigns,
+        perfSnapshots: s.perfSnapshots,
       },
       null,
       2
@@ -427,6 +560,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (data.ideas !== undefined) {
       await storage.set(K.ideas, sanitizers.ideas(data.ideas));
     }
+    if (data.campaigns !== undefined) {
+      await storage.set(K.campaigns, sanitizers.campaigns(data.campaigns));
+    }
+    if (data.perfSnapshots !== undefined) {
+      await storage.set(
+        K.perfSnapshots,
+        sanitizers.perfSnapshots(data.perfSnapshots)
+      );
+    }
     await get().hydrate();
   },
   async resetWorkspace() {
@@ -443,6 +585,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       tasks: [],
       launches: [],
       ideas: [],
+      campaigns: [],
+      perfSnapshots: [],
     });
   },
 }));

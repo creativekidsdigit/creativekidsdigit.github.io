@@ -17,6 +17,10 @@ function check(name: string, condition: boolean, detail?: unknown) {
   if (!ok && detail !== undefined) console.log("       ", detail);
 }
 
+// =========================================================================
+// PR #53 — base entities
+// =========================================================================
+
 console.log("\n== sanitizers — hostile inputs ==\n");
 
 // products
@@ -38,7 +42,6 @@ check(
   ]).length === 1
 );
 
-// fields are normalized
 const sample = sanitizeProduct({
   id: "p1",
   title: "Toolkit",
@@ -55,7 +58,6 @@ check(
 check("unknown status falls back to 'idea'", sample?.status === "idea");
 check("non-string platform falls back to 'other'", sample?.platform === "other");
 
-// settings
 const settingsCorrupt = sanitizeSettings({
   activeProvider: "no-such-provider",
   theme: "rainbow",
@@ -87,14 +89,12 @@ check(
     settingsCorrupt.brandVoice.length > 0
 );
 
-// content
 check("content from null → []", sanitizers.content(null).length === 0);
 check(
   "content with missing id is dropped",
   sanitizers.content([{ title: "x" }, { id: "c1", title: "ok" }]).length === 1
 );
 
-// prompts
 check(
   "prompts: missing name dropped",
   sanitizers.prompts([{ id: "x" }, { id: "y", name: "Real" }]).length === 1
@@ -113,7 +113,6 @@ check(
   })()
 );
 
-// tasks / launches / ideas
 check("tasks: empty id dropped", sanitizers.tasks([{ title: "x" }]).length === 0);
 check(
   "launches: invalid channel falls back to 'other'",
@@ -125,6 +124,190 @@ check(
   "ideas: empty text dropped",
   sanitizers.ideas([{ id: "i1", text: "" }, { id: "i2", text: "ok" }]).length === 1
 );
+
+// =========================================================================
+// PR #54 — Campaign Analytics
+// =========================================================================
+
+console.log("\n== campaign analytics sanitizers ==\n");
+
+check("campaigns: null → []", sanitizers.campaigns(null).length === 0);
+check(
+  "campaigns: missing name dropped",
+  sanitizers.campaigns([{ id: "c1" }, { id: "c2", name: "Real" }]).length === 1
+);
+check(
+  "campaigns: unknown platform → 'other'",
+  sanitizers.campaigns([{ id: "c1", name: "X", platform: "myspace" }])[0]
+    .platform === "other"
+);
+check(
+  "campaigns: unknown status → 'draft'",
+  sanitizers.campaigns([{ id: "c1", name: "X", status: "imploded" }])[0]
+    .status === "draft"
+);
+check(
+  "campaigns: unknown goal → 'traffic'",
+  sanitizers.campaigns([{ id: "c1", name: "X", goal: "world-domination" }])[0]
+    .goal === "traffic"
+);
+check(
+  "campaigns: productIds filters non-strings",
+  JSON.stringify(
+    sanitizers.campaigns([
+      { id: "c1", name: "X", productIds: ["p1", 7, null, "p2"] },
+    ])[0].productIds
+  ) === JSON.stringify(["p1", "p2"])
+);
+check(
+  "campaigns: malformed versions filtered, valid kept",
+  (() => {
+    const out = sanitizers.campaigns([
+      {
+        id: "c1",
+        name: "X",
+        versions: [
+          null,
+          { ts: 1, notes: "a", lessonsLearned: "b", optimizationIdeas: "c" },
+          "garbage",
+        ],
+      },
+    ]);
+    return out[0].versions.length === 1;
+  })()
+);
+check(
+  "campaigns: non-numeric budget coerced to 0",
+  sanitizers.campaigns([{ id: "c1", name: "X", budget: "expensive" }])[0]
+    .budget === 0
+);
+
+check("perf: null → []", sanitizers.perfSnapshots(null).length === 0);
+check(
+  "perf: missing campaignId dropped",
+  sanitizers.perfSnapshots([
+    { id: "s1" },
+    { id: "s2", campaignId: "c1" },
+  ]).length === 1
+);
+check(
+  "perf: non-numeric impressions coerced to 0",
+  sanitizers.perfSnapshots([
+    { id: "s1", campaignId: "c1", impressions: "lots" },
+  ])[0].impressions === 0
+);
+check(
+  "perf: Infinity / NaN safely fall back to 0",
+  (() => {
+    const out = sanitizers.perfSnapshots([
+      { id: "s1", campaignId: "c1", revenue: Infinity, cost: NaN },
+    ])[0];
+    return out.revenue === 0 && out.cost === 0;
+  })()
+);
+check(
+  "perf: every metric field exists with safe default",
+  (() => {
+    const out = sanitizers.perfSnapshots([
+      { id: "s1", campaignId: "c1" }, // nothing else
+    ])[0];
+    return (
+      out.impressions === 0 &&
+      out.clicks === 0 &&
+      out.saves === 0 &&
+      out.shares === 0 &&
+      out.comments === 0 &&
+      out.emailOpens === 0 &&
+      out.emailClicks === 0 &&
+      out.websiteVisits === 0 &&
+      out.productPageVisits === 0 &&
+      out.sales === 0 &&
+      out.revenue === 0 &&
+      out.cost === 0
+    );
+  })()
+);
+
+check(
+  "content: campaignId is preserved when string",
+  sanitizers.content([
+    { id: "x1", title: "T", body: "B", kind: "copy", campaignId: "c1" },
+  ])[0].campaignId === "c1"
+);
+check(
+  "content: campaignId discarded when not a string",
+  sanitizers.content([
+    { id: "x1", title: "T", body: "B", kind: "copy", campaignId: 7 },
+  ])[0].campaignId === undefined
+);
+
+// =========================================================================
+// PR #54 — analytics math
+// =========================================================================
+
+console.log("\n== analytics math ==\n");
+
+// Build a tiny in-memory campaign + snapshots and verify totals.
+const { totalsFor, campaignTotals, dailySeries, byPlatform } = await import(
+  "../src/lib/analytics"
+);
+
+const snaps = sanitizers.perfSnapshots([
+  { id: "s1", campaignId: "c1", date: "2026-06-01", impressions: 1000, clicks: 50, sales: 5, revenue: 100, cost: 20 },
+  { id: "s2", campaignId: "c1", date: "2026-06-02", impressions: 2000, clicks: 100, sales: 10, revenue: 200, cost: 40 },
+  { id: "s3", campaignId: "c2", date: "2026-06-01", impressions: 500, clicks: 0, sales: 0, revenue: 0, cost: 50 },
+]);
+
+const t1 = campaignTotals("c1", snaps);
+check("totalsFor: impressions sum", t1.impressions === 3000);
+check("totalsFor: clicks sum", t1.clicks === 150);
+check("totalsFor: revenue sum", t1.revenue === 300);
+check("totalsFor: cost sum", t1.cost === 60);
+check(
+  "totalsFor: CTR = 150/3000 = 0.05",
+  Math.abs((t1.ctr ?? 0) - 0.05) < 1e-9
+);
+check(
+  "totalsFor: conversion = 15/150 = 0.1",
+  Math.abs((t1.conversionRate ?? 0) - 0.1) < 1e-9
+);
+check(
+  "totalsFor: ROI = (300-60)/60 = 4",
+  Math.abs((t1.roi ?? 0) - 4) < 1e-9
+);
+
+const t2 = campaignTotals("c2", snaps);
+check("zero-clicks campaign: ctr is null", t2.ctr === 0); // 0/500
+check("zero-clicks campaign: conversionRate is null", t2.conversionRate === null);
+check("zero-clicks campaign: cpc is null", t2.cpc === null);
+check("zero-clicks campaign: roi defined when cost>0", t2.roi === -1); // (0-50)/50
+
+const empty = totalsFor([]);
+check("empty totals: clicks 0", empty.clicks === 0);
+check("empty totals: ratios all null", empty.ctr === null && empty.conversionRate === null && empty.roi === null);
+
+const series = dailySeries(snaps);
+check("dailySeries: 2 distinct dates", series.length === 2);
+check(
+  "dailySeries: 2026-06-01 sums across campaigns",
+  series.find((p) => p.date === "2026-06-01")?.impressions === 1500
+);
+
+// platform comparison
+const campaigns = sanitizers.campaigns([
+  { id: "c1", name: "C1", platform: "pinterest" },
+  { id: "c2", name: "C2", platform: "facebook" },
+]);
+const platforms = byPlatform(campaigns, snaps);
+check("byPlatform: returns one row per platform", platforms.length === 2);
+check(
+  "byPlatform: sorted by revenue desc",
+  platforms[0].platform === "pinterest" && platforms[0].revenue === 300
+);
+
+// =========================================================================
+// final
+// =========================================================================
 
 console.log(`\n${failed === 0 ? "ALL SMOKE TESTS PASSED" : `${failed} FAILED`}\n`);
 process.exit(failed === 0 ? 0 : 1);

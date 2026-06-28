@@ -33,7 +33,7 @@ export function SectionCard({
   children,
   className,
 }: {
-  title?: string;
+  title?: React.ReactNode;
   action?: ReactNode;
   children: ReactNode;
   className?: string;

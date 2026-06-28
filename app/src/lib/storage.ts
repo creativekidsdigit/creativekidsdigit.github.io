@@ -88,4 +88,6 @@ export const K = {
   tasks: "tasks",
   launches: "launches",
   ideas: "ideas",
+  campaigns: "campaigns",
+  perfSnapshots: "perfSnapshots",
 } as const;

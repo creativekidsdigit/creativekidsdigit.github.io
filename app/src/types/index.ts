@@ -49,6 +49,13 @@ export type ContentKind =
 export interface ContentItem {
   id: string;
   productId?: string;
+  /**
+   * Optional link back to a campaign. Lets the Campaign Detail page list
+   * every generated marketing asset belonging to a campaign without needing
+   * a separate join table. Set by the Copy Generator when a campaign is
+   * active, or manually from the Campaign Detail page.
+   */
+  campaignId?: string;
   kind: ContentKind;
   templateId: string; // which generator template produced it
   title: string;
@@ -121,3 +128,95 @@ export type Idea = {
   pinned: boolean;
   createdAt: number;
 };
+
+
+// ============================================================================
+// Campaign Analytics
+// ============================================================================
+
+export type CampaignPlatform =
+  | "pinterest"
+  | "facebook"
+  | "instagram"
+  | "google"
+  | "email"
+  | "organic-seo"
+  | "other";
+
+export type CampaignStatus =
+  | "draft"
+  | "scheduled"
+  | "active"
+  | "paused"
+  | "completed"
+  | "archived";
+
+export type CampaignGoal =
+  | "awareness"
+  | "traffic"
+  | "engagement"
+  | "leads"
+  | "sales"
+  | "retention"
+  | "other";
+
+export interface Campaign {
+  id: string;
+  name: string;
+  productIds: string[];
+  platform: CampaignPlatform;
+  goal: CampaignGoal;
+  startDate: string; // ISO yyyy-mm-dd
+  endDate?: string; // ISO yyyy-mm-dd
+  budget: number; // currency-agnostic; user-chosen units
+  status: CampaignStatus;
+  notes: string;
+  tags: string[];
+  audienceNotes: string;
+  lessonsLearned: string;
+  optimizationIdeas: string;
+  /**
+   * Editorial version history. Mirrors the PromptTemplate pattern — every
+   * substantive edit to notes / lessons / ideas pushes a snapshot. Capped
+   * at 20 entries to keep storage bounded.
+   */
+  versions: {
+    ts: number;
+    notes: string;
+    lessonsLearned: string;
+    optimizationIdeas: string;
+  }[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * A point-in-time performance measurement for a single campaign.
+ *
+ * Each snapshot represents a period's totals (e.g. "this week"). Aggregates
+ * across snapshots are computed as sums, so the user enters platform data
+ * the same way they read it from a dashboard — no delta math required.
+ *
+ * `cost` is the actual spend recorded for this period; budget on the parent
+ * Campaign is the planned spend. ROI = (sum(revenue) - sum(cost)) / sum(cost).
+ */
+export interface PerformanceSnapshot {
+  id: string;
+  campaignId: string;
+  date: string; // ISO yyyy-mm-dd
+  impressions: number;
+  clicks: number;
+  saves: number;
+  shares: number;
+  comments: number;
+  emailOpens: number;
+  emailClicks: number;
+  websiteVisits: number;
+  productPageVisits: number;
+  sales: number; // count of sales (orders)
+  revenue: number;
+  cost: number;
+  notes: string;
+  createdAt: number;
+  updatedAt: number;
+}

@@ -14,6 +14,8 @@ import SalesFunnelsPage from "./pages/SalesFunnelsPage";
 import PromptLibraryPage from "./pages/PromptLibraryPage";
 import ContentLibraryPage from "./pages/ContentLibraryPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import CampaignAnalyticsPage from "./pages/CampaignAnalyticsPage";
+import CampaignDetailPage from "./pages/CampaignDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
@@ -31,6 +33,8 @@ export default function App() {
           <Route path="blog" element={<BlogGeneratorPage />} />
           <Route path="social" element={<SocialMediaPage />} />
           <Route path="funnels" element={<SalesFunnelsPage />} />
+          <Route path="campaigns" element={<CampaignAnalyticsPage />} />
+          <Route path="campaigns/:id" element={<CampaignDetailPage />} />
           <Route path="prompts" element={<PromptLibraryPage />} />
           <Route path="library" element={<ContentLibraryPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
