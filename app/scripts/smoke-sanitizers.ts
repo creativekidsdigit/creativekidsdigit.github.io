@@ -228,6 +228,70 @@ check(
   })()
 );
 
+// --- non-negative clamp on count metrics ---
+check(
+  "perf: negative impressions clamp to 0",
+  sanitizers.perfSnapshots([
+    { id: "s1", campaignId: "c1", impressions: -42 },
+  ])[0].impressions === 0
+);
+check(
+  "perf: negative clicks/sales/etc. all clamp to 0",
+  (() => {
+    const out = sanitizers.perfSnapshots([
+      {
+        id: "s1",
+        campaignId: "c1",
+        impressions: -1,
+        clicks: -2,
+        saves: -3,
+        shares: -4,
+        comments: -5,
+        emailOpens: -6,
+        emailClicks: -7,
+        websiteVisits: -8,
+        productPageVisits: -9,
+        sales: -10,
+      },
+    ])[0];
+    return (
+      out.impressions === 0 &&
+      out.clicks === 0 &&
+      out.saves === 0 &&
+      out.shares === 0 &&
+      out.comments === 0 &&
+      out.emailOpens === 0 &&
+      out.emailClicks === 0 &&
+      out.websiteVisits === 0 &&
+      out.productPageVisits === 0 &&
+      out.sales === 0
+    );
+  })()
+);
+check(
+  "perf: positive count values are NOT touched",
+  (() => {
+    const out = sanitizers.perfSnapshots([
+      { id: "s1", campaignId: "c1", impressions: 1234, clicks: 56, sales: 7 },
+    ])[0];
+    return out.impressions === 1234 && out.clicks === 56 && out.sales === 7;
+  })()
+);
+// Monetary fields intentionally keep their sign so a refund period can record
+// negative revenue or cost. Guard against accidental clamping in regression.
+check(
+  "perf: negative revenue is PRESERVED (refund support)",
+  sanitizers.perfSnapshots([
+    { id: "s1", campaignId: "c1", revenue: -49.99 },
+  ])[0].revenue === -49.99
+);
+check(
+  "perf: negative cost is PRESERVED (adjustment support)",
+  sanitizers.perfSnapshots([
+    { id: "s1", campaignId: "c1", cost: -10 },
+  ])[0].cost === -10
+);
+
 check(
   "content: campaignId is preserved when string",
   sanitizers.content([
