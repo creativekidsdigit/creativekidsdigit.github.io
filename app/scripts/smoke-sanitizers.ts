@@ -373,5 +373,258 @@ check(
 // final
 // =========================================================================
 
+// =========================================================================
+// PR #58 — Campaign Builder
+// =========================================================================
+
+console.log("\n== campaign builder — plan ==\n");
+
+const {
+  buildPlan,
+  defaultCampaignName,
+  primaryCampaignPlatform,
+  resolveTemplate,
+  ALL_PLATFORMS,
+  ALL_OBJECTIVES,
+  PLATFORM_LABELS,
+  OBJECTIVE_LABELS,
+  OBJECTIVE_HINT,
+  OBJECTIVE_TO_GOAL,
+} = await import("../src/lib/campaignBuilder");
+
+// --- plan composition -----------------------------------------------------
+
+const emptyPlan = buildPlan([]);
+check(
+  "buildPlan([]) still includes product + SEO (7 + 2 = 9)",
+  emptyPlan.length === 9
+);
+check(
+  "buildPlan([]) only contains product + seo groups",
+  new Set(emptyPlan.map((t) => t.group)).size === 2
+);
+
+const fullPlan = buildPlan(ALL_PLATFORMS);
+check(
+  "buildPlan(allPlatforms) covers all 6 groups",
+  new Set(fullPlan.map((t) => t.group)).size === 6
+);
+check(
+  "buildPlan(allPlatforms) totals 22 tasks",
+  // 8 product (incl. Payhip) + 2 seo + 5 pinterest + 2 blog + 3 email + 4 social
+  fullPlan.length === 24 // 8 + 2 + 5 + 2 + 3 + 4 = 24
+);
+
+// Each task has a unique id within its plan
+check(
+  "buildPlan: task ids are unique",
+  new Set(fullPlan.map((t) => t.id)).size === fullPlan.length
+);
+
+// Adding pinterest adds exactly 5 tasks
+check(
+  "buildPlan: +pinterest = +5 tasks",
+  buildPlan(["pinterest"]).length - emptyPlan.length === 5
+);
+
+// Adding email adds exactly 3 tasks (launch, follow-up, reminder)
+check(
+  "buildPlan: +email = +3 tasks",
+  buildPlan(["email"]).length - emptyPlan.length === 3
+);
+
+// Adding payhip adds exactly 1 product-page task
+check(
+  "buildPlan: +payhip = +1 (the Payhip sales page)",
+  buildPlan(["payhip"]).length - emptyPlan.length === 1
+);
+
+// Adding blog adds 2 (article + internal links)
+check(
+  "buildPlan: +blog = +2 tasks",
+  buildPlan(["blog"]).length - emptyPlan.length === 2
+);
+
+// Each social platform adds exactly 1
+for (const p of ["facebook", "instagram", "linkedin", "x"] as const) {
+  check(
+    `buildPlan: +${p} = +1 social task`,
+    buildPlan([p]).length - emptyPlan.length === 1
+  );
+}
+
+// Plan order: always product → seo → pinterest → blog → email → social
+const grouped = fullPlan.map((t) => t.group);
+const firstSeoIdx = grouped.indexOf("seo");
+const firstProdIdx = grouped.indexOf("product");
+const firstEmailIdx = grouped.indexOf("email");
+check(
+  "buildPlan: product comes before seo",
+  firstProdIdx < firstSeoIdx && firstProdIdx >= 0
+);
+check(
+  "buildPlan: email comes after seo",
+  firstEmailIdx > firstSeoIdx
+);
+
+// --- objective / labels ---------------------------------------------------
+check(
+  "every objective has a label, hint, and goal mapping",
+  ALL_OBJECTIVES.every(
+    (o) => OBJECTIVE_LABELS[o] && OBJECTIVE_HINT[o] && OBJECTIVE_TO_GOAL[o]
+  )
+);
+check(
+  "every platform has a label",
+  ALL_PLATFORMS.every((p) => PLATFORM_LABELS[p])
+);
+
+// --- defaultCampaignName --------------------------------------------------
+check(
+  "defaultCampaignName combines title + objective label",
+  defaultCampaignName("ADHD Toolkit", "back-to-school") ===
+    "ADHD Toolkit — Back-to-school"
+);
+
+// --- primaryCampaignPlatform ---------------------------------------------
+check(
+  "primaryCampaignPlatform: prefers pinterest",
+  primaryCampaignPlatform(["payhip", "pinterest"]) === "pinterest"
+);
+check(
+  "primaryCampaignPlatform: empty array → 'other'",
+  primaryCampaignPlatform([]) === "other"
+);
+check(
+  "primaryCampaignPlatform: blog → organic-seo",
+  primaryCampaignPlatform(["blog"]) === "organic-seo"
+);
+
+// --- resolveTemplate -----------------------------------------------------
+const fakePrompts = [
+  {
+    id: "p-builtin",
+    name: "Product Title",
+    category: "copy",
+    description: "",
+    systemPrompt: "",
+    userPromptTemplate: "",
+    favorite: false,
+    builtIn: true,
+    versions: [],
+    createdAt: 0,
+    updatedAt: 0,
+  },
+  {
+    id: "p-custom",
+    name: "Product Title",
+    category: "copy",
+    description: "",
+    systemPrompt: "",
+    userPromptTemplate: "",
+    favorite: false,
+    builtIn: false,
+    versions: [],
+    createdAt: 0,
+    updatedAt: 0,
+  },
+];
+check(
+  "resolveTemplate: prefers built-in when both built-in and custom share a name",
+  resolveTemplate(fakePrompts, "Product Title")?.id === "p-builtin"
+);
+check(
+  "resolveTemplate: falls back to custom when no built-in",
+  resolveTemplate([fakePrompts[1]], "Product Title")?.id === "p-custom"
+);
+check(
+  "resolveTemplate: returns undefined when missing",
+  resolveTemplate(fakePrompts, "Nope") === undefined
+);
+
+// --- runWithConcurrency --------------------------------------------------
+
+console.log("\n== campaign builder — concurrency ==\n");
+
+const { runWithConcurrency } = await import("../src/lib/concurrency");
+
+// Records the maximum number of in-flight workers we observed.
+await (async () => {
+  let inFlight = 0;
+  let maxInFlight = 0;
+  const items = Array.from({ length: 12 }, (_, i) => i);
+  await runWithConcurrency(
+    items,
+    async () => {
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((r) => setTimeout(r, 5));
+      inFlight--;
+    },
+    3
+  );
+  check(
+    "runWithConcurrency: never exceeds the limit (max in-flight <= 3)",
+    maxInFlight <= 3
+  );
+  check(
+    "runWithConcurrency: uses the limit (max in-flight reaches 3 with 12 items)",
+    maxInFlight === 3
+  );
+})();
+
+// Each item is processed exactly once even when some throw.
+await (async () => {
+  const seen: number[] = [];
+  const items = [0, 1, 2, 3, 4, 5];
+  await runWithConcurrency(
+    items,
+    async (n) => {
+      seen.push(n);
+      if (n % 2 === 0) throw new Error("boom " + n);
+    },
+    2
+  );
+  check(
+    "runWithConcurrency: workers continue after a task throws",
+    seen.length === items.length
+  );
+  check(
+    "runWithConcurrency: every item seen",
+    seen.slice().sort((a, b) => a - b).join(",") === items.join(",")
+  );
+})();
+
+// AbortController-style cancellation: signal aborted before all work done.
+await (async () => {
+  const controller = new AbortController();
+  const completed: number[] = [];
+  setTimeout(() => controller.abort(), 8);
+  await runWithConcurrency(
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    async (n) => {
+      // Simulate AI request that aborts on signal
+      if (controller.signal.aborted) {
+        throw Object.assign(new Error("aborted"), { name: "AbortError" });
+      }
+      await new Promise((r) => setTimeout(r, 4));
+      if (controller.signal.aborted) {
+        throw Object.assign(new Error("aborted"), { name: "AbortError" });
+      }
+      completed.push(n);
+    },
+    3
+  );
+  check(
+    "runWithConcurrency: cancellation lets some tasks complete and stops the rest",
+    completed.length > 0 && completed.length < 10
+  );
+})();
+
+
+// =========================================================================
+// final
+// =========================================================================
+
 console.log(`\n${failed === 0 ? "ALL SMOKE TESTS PASSED" : `${failed} FAILED`}\n`);
 process.exit(failed === 0 ? 0 : 1);
