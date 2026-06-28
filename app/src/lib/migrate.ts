@@ -11,10 +11,15 @@
 
 import type {
   AppSettings,
+  Campaign,
+  CampaignGoal,
+  CampaignPlatform,
+  CampaignStatus,
   ContentItem,
   ContentKind,
   Idea,
   LaunchEvent,
+  PerformanceSnapshot,
   Platform,
   Product,
   ProductStatus,
@@ -125,6 +130,7 @@ export function sanitizeContent(v: unknown): ContentItem | null {
   return {
     id,
     productId: typeof v.productId === "string" ? v.productId : undefined,
+    campaignId: typeof v.campaignId === "string" ? v.campaignId : undefined,
     kind,
     templateId: asString(v.templateId),
     title: asString(v.title, "Untitled"),
@@ -269,6 +275,120 @@ export function sanitizeSettings(v: unknown): AppSettings {
   };
 }
 
+/** ---------- Campaigns ---------- */
+
+const CAMPAIGN_PLATFORMS: CampaignPlatform[] = [
+  "pinterest",
+  "facebook",
+  "instagram",
+  "google",
+  "email",
+  "organic-seo",
+  "other",
+];
+const CAMPAIGN_STATUSES: CampaignStatus[] = [
+  "draft",
+  "scheduled",
+  "active",
+  "paused",
+  "completed",
+  "archived",
+];
+const CAMPAIGN_GOALS: CampaignGoal[] = [
+  "awareness",
+  "traffic",
+  "engagement",
+  "leads",
+  "sales",
+  "retention",
+  "other",
+];
+
+export function sanitizeCampaign(v: unknown): Campaign | null {
+  if (!isObject(v)) return null;
+  const id = asString(v.id);
+  const name = asString(v.name);
+  if (!id || !name) return null;
+  const platform = (CAMPAIGN_PLATFORMS as readonly string[]).includes(
+    asString(v.platform)
+  )
+    ? (v.platform as CampaignPlatform)
+    : "other";
+  const status = (CAMPAIGN_STATUSES as readonly string[]).includes(
+    asString(v.status)
+  )
+    ? (v.status as CampaignStatus)
+    : "draft";
+  const goal = (CAMPAIGN_GOALS as readonly string[]).includes(
+    asString(v.goal)
+  )
+    ? (v.goal as CampaignGoal)
+    : "traffic";
+  const versionsRaw = Array.isArray(v.versions) ? v.versions : [];
+  const versions = versionsRaw
+    .map((ver) => {
+      if (!isObject(ver)) return null;
+      return {
+        ts: asNumber(ver.ts, now()),
+        notes: asString(ver.notes),
+        lessonsLearned: asString(ver.lessonsLearned),
+        optimizationIdeas: asString(ver.optimizationIdeas),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+  return {
+    id,
+    name,
+    productIds: asStringArray(v.productIds),
+    platform,
+    goal,
+    startDate: asString(
+      v.startDate,
+      new Date().toISOString().slice(0, 10)
+    ),
+    endDate: typeof v.endDate === "string" ? v.endDate : undefined,
+    budget: asNumber(v.budget, 0),
+    status,
+    notes: asString(v.notes),
+    tags: asStringArray(v.tags),
+    audienceNotes: asString(v.audienceNotes),
+    lessonsLearned: asString(v.lessonsLearned),
+    optimizationIdeas: asString(v.optimizationIdeas),
+    versions,
+    createdAt: asNumber(v.createdAt, now()),
+    updatedAt: asNumber(v.updatedAt, now()),
+  };
+}
+
+export function sanitizePerformance(
+  v: unknown
+): PerformanceSnapshot | null {
+  if (!isObject(v)) return null;
+  const id = asString(v.id);
+  const campaignId = asString(v.campaignId);
+  if (!id || !campaignId) return null;
+  return {
+    id,
+    campaignId,
+    date: asString(v.date, new Date().toISOString().slice(0, 10)),
+    impressions: asNumber(v.impressions, 0),
+    clicks: asNumber(v.clicks, 0),
+    saves: asNumber(v.saves, 0),
+    shares: asNumber(v.shares, 0),
+    comments: asNumber(v.comments, 0),
+    emailOpens: asNumber(v.emailOpens, 0),
+    emailClicks: asNumber(v.emailClicks, 0),
+    websiteVisits: asNumber(v.websiteVisits, 0),
+    productPageVisits: asNumber(v.productPageVisits, 0),
+    sales: asNumber(v.sales, 0),
+    revenue: asNumber(v.revenue, 0),
+    cost: asNumber(v.cost, 0),
+    notes: asString(v.notes),
+    createdAt: asNumber(v.createdAt, now()),
+    updatedAt: asNumber(v.updatedAt, now()),
+  };
+}
+
 /** ---------- Array sanitizers ---------- */
 
 function sanitizeArray<T>(v: unknown, item: (raw: unknown) => T | null): T[] {
@@ -288,5 +408,8 @@ export const sanitizers = {
   tasks: (v: unknown): Task[] => sanitizeArray(v, sanitizeTask),
   launches: (v: unknown): LaunchEvent[] => sanitizeArray(v, sanitizeLaunch),
   ideas: (v: unknown): Idea[] => sanitizeArray(v, sanitizeIdea),
+  campaigns: (v: unknown): Campaign[] => sanitizeArray(v, sanitizeCampaign),
+  perfSnapshots: (v: unknown): PerformanceSnapshot[] =>
+    sanitizeArray(v, sanitizePerformance),
   settings: sanitizeSettings,
 };

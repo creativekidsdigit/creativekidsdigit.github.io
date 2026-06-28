@@ -12,6 +12,7 @@ import {
   Bot,
   Library,
   BarChart3,
+  TrendingUp,
   Settings,
 } from "lucide-react";
 import clsx from "clsx";
@@ -26,6 +27,7 @@ const NAV = [
   { to: "/blog", label: "Blog Generator", icon: FileText },
   { to: "/social", label: "Social Media", icon: Share2 },
   { to: "/funnels", label: "Sales Funnels", icon: Target },
+  { to: "/campaigns", label: "Campaign Analytics", icon: TrendingUp },
   { to: "/prompts", label: "Prompt Library", icon: Bot },
   { to: "/library", label: "Content Library", icon: Library },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
