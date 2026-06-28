@@ -13,6 +13,7 @@ import { PageHeader, SectionCard, Badge, EmptyState } from "@/components/ui";
 import { toast } from "@/components/Toast";
 import { useQueryParam } from "@/lib/useQueryParam";
 import { copyText, downloadFile, formatRelative, slugify, wordCount } from "@/lib/util";
+import ExportMenu from "@/components/ExportMenu";
 import type { ContentKind } from "@/types";
 
 const KINDS: ContentKind[] = [
@@ -192,6 +193,17 @@ export default function ContentLibraryPage() {
                     >
                       <Download className="h-3.5 w-3.5" /> .md
                     </button>
+                    <ExportMenu
+                      scope="asset"
+                      label="Export"
+                      context={() => ({
+                        asset: active,
+                        assets: [active],
+                        products,
+                        snapshots: [],
+                        product: products.find((p) => p.id === active.productId),
+                      })}
+                    />
                     <button
                       className="btn-ghost h-8 w-8 p-0"
                       onClick={async () => {
