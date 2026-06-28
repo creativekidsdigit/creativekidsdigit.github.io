@@ -36,34 +36,66 @@ export function ToastViewport() {
   useEffect(() => {
     /* no-op */
   }, []);
+
+  // Split into two live regions so error toasts can interrupt screen-reader
+  // output (assertive) while success/info wait their turn (polite). Visual
+  // layout is unchanged — both inner regions use the same flex column rules
+  // as the original single container.
+  const politeToasts = toasts.filter((t) => t.kind !== "error");
+  const assertiveToasts = toasts.filter((t) => t.kind === "error");
+
+  const renderToast = (t: Toast) => (
+    <div
+      key={t.id}
+      className={clsx(
+        "pointer-events-auto flex max-w-sm items-start gap-2 rounded-lg border px-3 py-2 text-sm shadow-lg",
+        t.kind === "success" &&
+          "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
+        t.kind === "error" &&
+          "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-700 dark:bg-rose-900/40 dark:text-rose-200",
+        t.kind === "info" &&
+          "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700 dark:bg-sky-900/40 dark:text-sky-200"
+      )}
+    >
+      {t.kind === "success" && (
+        <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+      )}
+      {t.kind === "error" && (
+        <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+      )}
+      {t.kind === "info" && (
+        <Info className="h-4 w-4 shrink-0" aria-hidden="true" />
+      )}
+      <div className="flex-1">{t.msg}</div>
+      <button
+        type="button"
+        onClick={() => remove(t.id)}
+        aria-label="Dismiss notification"
+        className="-mr-1 -mt-0.5 p-1 opacity-70 hover:opacity-100"
+      >
+        <X className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
+    </div>
+  );
+
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-[60] flex flex-col gap-2">
-      {toasts.map((t) => (
-        <div
-          key={t.id}
-          className={clsx(
-            "pointer-events-auto flex max-w-sm items-start gap-2 rounded-lg border px-3 py-2 text-sm shadow-lg",
-            t.kind === "success" &&
-              "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
-            t.kind === "error" &&
-              "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-700 dark:bg-rose-900/40 dark:text-rose-200",
-            t.kind === "info" &&
-              "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700 dark:bg-sky-900/40 dark:text-sky-200"
-          )}
-        >
-          {t.kind === "success" && <CheckCircle2 className="h-4 w-4 shrink-0" />}
-          {t.kind === "error" && <AlertTriangle className="h-4 w-4 shrink-0" />}
-          {t.kind === "info" && <Info className="h-4 w-4 shrink-0" />}
-          <div className="flex-1">{t.msg}</div>
-          <button
-            onClick={() => remove(t.id)}
-            aria-label="Dismiss"
-            className="-mr-1 -mt-0.5 p-1 opacity-70 hover:opacity-100"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      ))}
+      {/* Success and info messages — polite so they don't interrupt. */}
+      <div
+        aria-live="polite"
+        aria-atomic="false"
+        className="flex flex-col gap-2"
+      >
+        {politeToasts.map(renderToast)}
+      </div>
+      {/* Errors — assertive so screen readers announce them right away. */}
+      <div
+        aria-live="assertive"
+        aria-atomic="false"
+        className="flex flex-col gap-2"
+      >
+        {assertiveToasts.map(renderToast)}
+      </div>
     </div>
   );
 }

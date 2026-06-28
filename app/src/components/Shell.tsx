@@ -41,10 +41,26 @@ export default function Shell() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+      {/*
+        Skip link — visually hidden until keyboard-focused. Lets keyboard
+        users bypass the 16-item Sidebar and 4-item Topbar (~20 tab stops)
+        that repeat on every route. Standard pattern; only present here
+        because the nav is so dense.
+      */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       <Sidebar open={open} onClose={() => setOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onMenu={() => setOpen(true)} />
-        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8"
+        >
           <div className="mx-auto w-full max-w-7xl animate-fade-in">
             <Outlet />
           </div>
