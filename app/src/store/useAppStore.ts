@@ -6,14 +6,19 @@ import { sanitizers, sanitizeSettings } from "@/lib/migrate";
 import type {
   AppSettings,
   Campaign,
+  Competitor,
   ContentItem,
   Idea,
+  Keyword,
   LaunchEvent,
+  Opportunity,
+  OpportunityScoreFactor,
   PerformanceSnapshot,
   Product,
   PromptTemplate,
   Task,
 } from "@/types";
+import { buildScore } from "@/lib/opportunityScore";
 
 interface AppState {
   hydrated: boolean;
@@ -26,6 +31,9 @@ interface AppState {
   ideas: Idea[];
   campaigns: Campaign[];
   perfSnapshots: PerformanceSnapshot[];
+  opportunities: Opportunity[];
+  keywords: Keyword[];
+  competitors: Competitor[];
 
   hydrate(): Promise<void>;
 
@@ -81,6 +89,28 @@ interface AppState {
   updatePerformance(id: string, patch: Partial<PerformanceSnapshot>): Promise<void>;
   deletePerformance(id: string): Promise<void>;
 
+  // research — opportunities
+  createOpportunity(o: Partial<Opportunity>): Promise<Opportunity>;
+  updateOpportunity(id: string, patch: Partial<Opportunity>): Promise<void>;
+  setOpportunityFactor(
+    id: string,
+    factor: OpportunityScoreFactor,
+    value: number
+  ): Promise<void>;
+  deleteOpportunity(id: string): Promise<void>;
+  /** One-click "opportunity → Product". Returns the new product. */
+  convertOpportunityToProduct(id: string): Promise<Product | null>;
+
+  // research — keywords
+  createKeyword(k: Partial<Keyword>): Promise<Keyword>;
+  updateKeyword(id: string, patch: Partial<Keyword>): Promise<void>;
+  deleteKeyword(id: string): Promise<void>;
+
+  // research — competitors
+  createCompetitor(c: Partial<Competitor>): Promise<Competitor>;
+  updateCompetitor(id: string, patch: Partial<Competitor>): Promise<void>;
+  deleteCompetitor(id: string): Promise<void>;
+
   // utility
   exportAll(): Promise<string>;
   importAll(json: string): Promise<void>;
@@ -117,6 +147,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   ideas: [],
   campaigns: [],
   perfSnapshots: [],
+  opportunities: [],
+  keywords: [],
+  competitors: [],
 
   async hydrate() {
     // Read everything in parallel, then run each blob through a shape guard.
@@ -132,6 +165,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       rawIdeas,
       rawCampaigns,
       rawPerf,
+      rawOpportunities,
+      rawKeywords,
+      rawCompetitors,
     ] = await Promise.all([
       storage.get<unknown>(K.settings, null),
       storage.get<unknown>(K.products, []),
@@ -142,6 +178,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       storage.get<unknown>(K.ideas, []),
       storage.get<unknown>(K.campaigns, []),
       storage.get<unknown>(K.perfSnapshots, []),
+      storage.get<unknown>(K.opportunities, []),
+      storage.get<unknown>(K.keywords, []),
+      storage.get<unknown>(K.competitors, []),
     ]);
 
     const settings = sanitizeSettings(rawSettings);
@@ -152,6 +191,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     const ideas = sanitizers.ideas(rawIdeas);
     const campaigns = sanitizers.campaigns(rawCampaigns);
     const perfSnapshots = sanitizers.perfSnapshots(rawPerf);
+    const opportunities = sanitizers.opportunities(rawOpportunities);
+    const keywords = sanitizers.keywords(rawKeywords);
+    const competitors = sanitizers.competitors(rawCompetitors);
     const storedPrompts = sanitizers.prompts(rawPrompts);
 
     // Seed built-in prompts on first run (or after a reset)
@@ -172,6 +214,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       ideas,
       campaigns,
       perfSnapshots,
+      opportunities,
+      keywords,
+      competitors,
     });
   },
 
@@ -514,6 +559,160 @@ export const useAppStore = create<AppState>((set, get) => ({
     await storage.set(K.perfSnapshots, next);
   },
 
+  // research — opportunities
+  async createOpportunity(o) {
+    const factors = o.score?.factors ?? {};
+    const score = buildScore(factors, get().settings);
+    const item: Opportunity = {
+      id: uid("opp"),
+      title: o.title ?? "Untitled opportunity",
+      description: o.description ?? "",
+      category: o.category ?? "",
+      audience: o.audience ?? "",
+      keywords: o.keywords ?? [],
+      trend: o.trend ?? "stable",
+      status: o.status ?? "idea",
+      score,
+      notes: o.notes ?? "",
+      linkedProductId: o.linkedProductId,
+      relatedProductIds: o.relatedProductIds ?? [],
+      source: o.source ?? "manual",
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    const next = [item, ...get().opportunities];
+    set({ opportunities: next });
+    await storage.set(K.opportunities, next);
+    return item;
+  },
+  async updateOpportunity(id, patch) {
+    const settings = get().settings;
+    const next = get().opportunities.map((o) => {
+      if (o.id !== id) return o;
+      // If `score.factors` is being patched, recompute the total. If only
+      // `score.total` is patched explicitly (e.g. AI sets it), trust it.
+      let nextScore = o.score;
+      if (patch.score?.factors !== undefined) {
+        nextScore = buildScore(
+          { ...o.score.factors, ...patch.score.factors },
+          settings
+        );
+      } else if (patch.score) {
+        nextScore = patch.score;
+      }
+      return { ...o, ...patch, score: nextScore, updatedAt: now() };
+    });
+    set({ opportunities: next });
+    await storage.set(K.opportunities, next);
+  },
+  async setOpportunityFactor(id, factor, value) {
+    const settings = get().settings;
+    const next = get().opportunities.map((o) => {
+      if (o.id !== id) return o;
+      const factors = { ...o.score.factors, [factor]: value };
+      return {
+        ...o,
+        score: buildScore(factors, settings),
+        updatedAt: now(),
+      };
+    });
+    set({ opportunities: next });
+    await storage.set(K.opportunities, next);
+  },
+  async deleteOpportunity(id) {
+    const next = get().opportunities.filter((o) => o.id !== id);
+    set({ opportunities: next });
+    await storage.set(K.opportunities, next);
+  },
+  async convertOpportunityToProduct(id) {
+    const o = get().opportunities.find((x) => x.id === id);
+    if (!o) return null;
+    // If this opportunity already produced a product, return that — don't
+    // create duplicates on re-click.
+    if (o.linkedProductId) {
+      return get().products.find((p) => p.id === o.linkedProductId) ?? null;
+    }
+    const product = await get().createProduct({
+      title: o.title,
+      category: o.category,
+      audience: o.audience,
+      problemSolved: o.description,
+      keywords: o.keywords,
+      notes: `Created from opportunity. Original notes:\n${o.notes}`.trim(),
+      status: "idea",
+    });
+    // Persist the back-reference and advance the pipeline status.
+    await get().updateOpportunity(o.id, {
+      linkedProductId: product.id,
+      status: o.status === "idea" || o.status === "researching" ? "creating" : o.status,
+    });
+    return product;
+  },
+
+  // research — keywords
+  async createKeyword(k) {
+    const item: Keyword = {
+      id: uid("kw"),
+      term: k.term ?? "",
+      type: k.type ?? "long-tail",
+      topic: k.topic ?? "",
+      trend: k.trend,
+      notes: k.notes ?? "",
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    if (!item.term.trim()) throw new Error("Keyword term is required");
+    const next = [item, ...get().keywords];
+    set({ keywords: next });
+    await storage.set(K.keywords, next);
+    return item;
+  },
+  async updateKeyword(id, patch) {
+    const next = get().keywords.map((k) =>
+      k.id === id ? { ...k, ...patch, updatedAt: now() } : k
+    );
+    set({ keywords: next });
+    await storage.set(K.keywords, next);
+  },
+  async deleteKeyword(id) {
+    const next = get().keywords.filter((k) => k.id !== id);
+    set({ keywords: next });
+    await storage.set(K.keywords, next);
+  },
+
+  // research — competitors
+  async createCompetitor(c) {
+    const item: Competitor = {
+      id: uid("cmp"),
+      productTitle: c.productTitle ?? "Untitled competitor",
+      category: c.category ?? "",
+      price: c.price ?? "",
+      url: c.url,
+      strengths: c.strengths ?? "",
+      weaknesses: c.weaknesses ?? "",
+      missingFeatures: c.missingFeatures ?? "",
+      notes: c.notes ?? "",
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    const next = [item, ...get().competitors];
+    set({ competitors: next });
+    await storage.set(K.competitors, next);
+    return item;
+  },
+  async updateCompetitor(id, patch) {
+    const next = get().competitors.map((c) =>
+      c.id === id ? { ...c, ...patch, updatedAt: now() } : c
+    );
+    set({ competitors: next });
+    await storage.set(K.competitors, next);
+  },
+  async deleteCompetitor(id) {
+    const next = get().competitors.filter((c) => c.id !== id);
+    set({ competitors: next });
+    await storage.set(K.competitors, next);
+  },
+
   // utility
   async exportAll() {
     const s = get();
@@ -530,6 +729,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         ideas: s.ideas,
         campaigns: s.campaigns,
         perfSnapshots: s.perfSnapshots,
+        opportunities: s.opportunities,
+        keywords: s.keywords,
+        competitors: s.competitors,
       },
       null,
       2
@@ -569,6 +771,18 @@ export const useAppStore = create<AppState>((set, get) => ({
         sanitizers.perfSnapshots(data.perfSnapshots)
       );
     }
+    if (data.opportunities !== undefined) {
+      await storage.set(
+        K.opportunities,
+        sanitizers.opportunities(data.opportunities)
+      );
+    }
+    if (data.keywords !== undefined) {
+      await storage.set(K.keywords, sanitizers.keywords(data.keywords));
+    }
+    if (data.competitors !== undefined) {
+      await storage.set(K.competitors, sanitizers.competitors(data.competitors));
+    }
     await get().hydrate();
   },
   async resetWorkspace() {
@@ -587,6 +801,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       ideas: [],
       campaigns: [],
       perfSnapshots: [],
+      opportunities: [],
+      keywords: [],
+      competitors: [],
     });
   },
 }));

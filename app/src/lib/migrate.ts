@@ -15,10 +15,17 @@ import type {
   CampaignGoal,
   CampaignPlatform,
   CampaignStatus,
+  Competitor,
   ContentItem,
   ContentKind,
   Idea,
+  Keyword,
+  KeywordType,
   LaunchEvent,
+  Opportunity,
+  OpportunityScoreFactor,
+  OpportunityStatus,
+  OpportunityTrend,
   PerformanceSnapshot,
   Platform,
   Product,
@@ -431,5 +438,153 @@ export const sanitizers = {
   campaigns: (v: unknown): Campaign[] => sanitizeArray(v, sanitizeCampaign),
   perfSnapshots: (v: unknown): PerformanceSnapshot[] =>
     sanitizeArray(v, sanitizePerformance),
+  opportunities: (v: unknown): Opportunity[] =>
+    sanitizeArray(v, sanitizeOpportunity),
+  keywords: (v: unknown): Keyword[] => sanitizeArray(v, sanitizeKeyword),
+  competitors: (v: unknown): Competitor[] =>
+    sanitizeArray(v, sanitizeCompetitor),
   settings: sanitizeSettings,
 };
+
+
+/** ---------- Product Research ---------- */
+
+const OPPORTUNITY_STATUSES: OpportunityStatus[] = [
+  "idea",
+  "researching",
+  "planned",
+  "creating",
+  "ready",
+  "published",
+  "optimizing",
+];
+const OPPORTUNITY_TRENDS: OpportunityTrend[] = [
+  "rising",
+  "stable",
+  "declining",
+  "seasonal",
+  "evergreen",
+];
+const KEYWORD_TYPES: KeywordType[] = [
+  "primary",
+  "secondary",
+  "long-tail",
+  "question",
+  "seasonal",
+];
+const SCORE_FACTORS: OpportunityScoreFactor[] = [
+  "searchDemand",
+  "competition",
+  "seasonality",
+  "commercialIntent",
+  "catalogFit",
+  "reusability",
+  "creationEffort",
+  "revenuePotential",
+];
+
+function clamp(n: number, lo: number, hi: number): number {
+  if (!Number.isFinite(n)) return lo;
+  if (n < lo) return lo;
+  if (n > hi) return hi;
+  return n;
+}
+
+function sanitizeScoreFactors(
+  v: unknown
+): Partial<Record<OpportunityScoreFactor, number>> {
+  if (!isObject(v)) return {};
+  const out: Partial<Record<OpportunityScoreFactor, number>> = {};
+  for (const f of SCORE_FACTORS) {
+    const raw = v[f];
+    if (typeof raw === "number" && Number.isFinite(raw)) {
+      out[f] = clamp(raw, 0, 100);
+    }
+  }
+  return out;
+}
+
+export function sanitizeOpportunity(v: unknown): Opportunity | null {
+  if (!isObject(v)) return null;
+  const id = asString(v.id);
+  const title = asString(v.title);
+  if (!id || !title) return null;
+  const status = (OPPORTUNITY_STATUSES as readonly string[]).includes(
+    asString(v.status)
+  )
+    ? (v.status as OpportunityStatus)
+    : "idea";
+  const trend = (OPPORTUNITY_TRENDS as readonly string[]).includes(
+    asString(v.trend)
+  )
+    ? (v.trend as OpportunityTrend)
+    : "stable";
+  const source = v.source === "ai-generated" ? "ai-generated" : "manual";
+  const scoreRaw = isObject(v.score) ? v.score : {};
+  return {
+    id,
+    title,
+    description: asString(v.description),
+    category: asString(v.category),
+    audience: asString(v.audience),
+    keywords: asStringArray(v.keywords),
+    trend,
+    status,
+    score: {
+      total: clamp(asNumber(scoreRaw.total, 0), 0, 100),
+      factors: sanitizeScoreFactors(scoreRaw.factors),
+    },
+    notes: asString(v.notes),
+    linkedProductId:
+      typeof v.linkedProductId === "string" ? v.linkedProductId : undefined,
+    relatedProductIds: asStringArray(v.relatedProductIds),
+    source,
+    createdAt: asNumber(v.createdAt, now()),
+    updatedAt: asNumber(v.updatedAt, now()),
+  };
+}
+
+export function sanitizeKeyword(v: unknown): Keyword | null {
+  if (!isObject(v)) return null;
+  const id = asString(v.id);
+  const term = asString(v.term);
+  if (!id || !term) return null;
+  const type = (KEYWORD_TYPES as readonly string[]).includes(asString(v.type))
+    ? (v.type as KeywordType)
+    : "long-tail";
+  const trend =
+    typeof v.trend === "string" &&
+    (OPPORTUNITY_TRENDS as readonly string[]).includes(v.trend)
+      ? (v.trend as OpportunityTrend)
+      : undefined;
+  return {
+    id,
+    term,
+    type,
+    topic: asString(v.topic),
+    trend,
+    notes: asString(v.notes),
+    createdAt: asNumber(v.createdAt, now()),
+    updatedAt: asNumber(v.updatedAt, now()),
+  };
+}
+
+export function sanitizeCompetitor(v: unknown): Competitor | null {
+  if (!isObject(v)) return null;
+  const id = asString(v.id);
+  const productTitle = asString(v.productTitle);
+  if (!id || !productTitle) return null;
+  return {
+    id,
+    productTitle,
+    category: asString(v.category),
+    price: asString(v.price),
+    url: typeof v.url === "string" ? v.url : undefined,
+    strengths: asString(v.strengths),
+    weaknesses: asString(v.weaknesses),
+    missingFeatures: asString(v.missingFeatures),
+    notes: asString(v.notes),
+    createdAt: asNumber(v.createdAt, now()),
+    updatedAt: asNumber(v.updatedAt, now()),
+  };
+}

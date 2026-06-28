@@ -9,6 +9,22 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultAudience:
     "Parents of children ages 5–12, especially those with ADHD or sensory needs.",
   autosave: true,
+  /**
+   * Default Opportunity Score weights. Sum doesn't need to be 1 — the score
+   * normalizes by total weight. These defaults bias toward "fit + revenue"
+   * over "search demand" because the typical user is a content creator
+   * choosing the next product to build, not a paid-ads buyer.
+   */
+  researchScoreWeights: {
+    searchDemand: 1.0,
+    competition: 0.8,
+    seasonality: 0.5,
+    commercialIntent: 1.0,
+    catalogFit: 1.5,
+    reusability: 0.8,
+    creationEffort: 1.0,
+    revenuePotential: 1.5,
+  },
   providers: {
     openai: {
       id: "openai",

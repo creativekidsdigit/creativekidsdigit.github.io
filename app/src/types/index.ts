@@ -109,6 +109,23 @@ export interface AppSettings {
   brandVoice: string;
   defaultAudience: string;
   autosave: boolean;
+  /**
+   * Weights for the Opportunity Score factors. Each is a non-negative
+   * number; the score is the weighted average, so absolute values don't
+   * matter — only ratios. Stored in settings so the scoring model is
+   * configurable per user.
+   */
+  researchScoreWeights?: Partial<Record<
+    | "searchDemand"
+    | "competition"
+    | "seasonality"
+    | "commercialIntent"
+    | "catalogFit"
+    | "reusability"
+    | "creationEffort"
+    | "revenuePotential",
+    number
+  >>;
 }
 
 export type Task = {
@@ -223,6 +240,126 @@ export interface PerformanceSnapshot {
   sales: number; // count of sales (orders)
   revenue: number;
   cost: number;
+  notes: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+
+// ============================================================================
+// Product Research & Opportunity Engine
+// ============================================================================
+
+/**
+ * Lifecycle stages an opportunity moves through. Drives the Pipeline Kanban.
+ * Once an opportunity is converted into a Product, the `linkedProductId`
+ * field is set; the pipeline status reflects "publishing readiness" of the
+ * underlying idea, not whether a Product has been created.
+ */
+export type OpportunityStatus =
+  | "idea"
+  | "researching"
+  | "planned"
+  | "creating"
+  | "ready"
+  | "published"
+  | "optimizing";
+
+/** Classification of an opportunity's market trajectory. Manual label. */
+export type OpportunityTrend =
+  | "rising"
+  | "stable"
+  | "declining"
+  | "seasonal"
+  | "evergreen";
+
+/**
+ * Score factors. Each is a 0–100 rating that gets weighted into the overall
+ * Opportunity Score (also 0–100). The weights live in AppSettings so the
+ * scoring model is configurable + transparent.
+ *
+ * Convention for direction-of-merit:
+ *   - searchDemand, commercialIntent, catalogFit, reusability,
+ *     revenuePotential: higher is better
+ *   - competition, creationEffort, seasonality: higher means harder/riskier
+ *     — these are SCORED so that 100 = best-case (e.g. low competition,
+ *     low effort, evergreen). The user enters "how good is this dimension
+ *     for me?" rather than the raw quantity.
+ */
+export type OpportunityScoreFactor =
+  | "searchDemand"
+  | "competition"
+  | "seasonality"
+  | "commercialIntent"
+  | "catalogFit"
+  | "reusability"
+  | "creationEffort"
+  | "revenuePotential";
+
+export interface OpportunityScore {
+  /** 0–100 weighted total. Recomputed whenever factors or weights change. */
+  total: number;
+  /** 0–100 per-factor ratings; missing factors default to 50 (neutral). */
+  factors: Partial<Record<OpportunityScoreFactor, number>>;
+}
+
+export interface Opportunity {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  audience: string;
+  keywords: string[];
+  trend: OpportunityTrend;
+  status: OpportunityStatus;
+  score: OpportunityScore;
+  notes: string;
+  /**
+   * If this opportunity was converted into a Product, the resulting product's
+   * id. The opportunity itself remains in the pipeline (typically transitioning
+   * to "creating" → "published") so the user has a record of the bet.
+   */
+  linkedProductId?: string;
+  /** Other products in the catalog this opportunity is related to / could bundle with. */
+  relatedProductIds: string[];
+  /** Provenance — distinguishes user-entered ideas from AI-suggested ones. */
+  source: "manual" | "ai-generated";
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** Classification of a researched keyword. */
+export type KeywordType =
+  | "primary"
+  | "secondary"
+  | "long-tail"
+  | "question"
+  | "seasonal";
+
+export interface Keyword {
+  id: string;
+  term: string;
+  type: KeywordType;
+  /** Free-form grouping label (e.g. "ADHD parenting", "back-to-school"). */
+  topic: string;
+  /** Optional manual trend classification, same vocabulary as Opportunity.trend. */
+  trend?: OpportunityTrend;
+  notes: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface Competitor {
+  id: string;
+  productTitle: string;
+  category: string;
+  /** Free-form price string (e.g. "$19", "free", "subscription"). */
+  price: string;
+  /** Optional URL to the competitor's listing for reference. */
+  url?: string;
+  strengths: string;
+  weaknesses: string;
+  missingFeatures: string;
   notes: string;
   createdAt: number;
   updatedAt: number;
