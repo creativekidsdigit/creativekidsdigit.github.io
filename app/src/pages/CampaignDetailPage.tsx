@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Pin,
   AlertTriangle,
+  Send,
 } from "lucide-react";
 import {
   CartesianGrid,
@@ -219,6 +220,12 @@ export default function CampaignDetailPage() {
       >
         <Link to="/campaigns" className="btn-secondary">
           <ArrowLeft className="h-4 w-4" /> All campaigns
+        </Link>
+        <Link
+          to={`/campaigns/${campaign.id}/publish`}
+          className="btn-secondary"
+        >
+          <Send className="h-4 w-4" /> Publishing workspace
         </Link>
         <button className="btn-secondary" onClick={exportSummary}>
           <FileDown className="h-4 w-4" /> Export summary
@@ -528,14 +535,30 @@ export default function CampaignDetailPage() {
           <SectionCard
             title={`Generated assets (${generatedAssets.length})`}
             action={
-              generatedAssets.length === 0 ? null : (
-                <button
-                  className="text-xs text-brand-600 hover:underline"
-                  onClick={() => setAttachOpen(true)}
-                >
-                  Attach more
-                </button>
-              )
+              <div className="flex items-center gap-2 text-xs">
+                {generatedAssets.length > 0 && (
+                  <>
+                    <span className="text-slate-500">
+                      {generatedAssets.filter((c) => !!c.publishedAt).length}/
+                      {generatedAssets.length} published
+                    </span>
+                    <Link
+                      to={`/campaigns/${campaign.id}/publish`}
+                      className="text-brand-600 hover:underline"
+                    >
+                      Open workspace →
+                    </Link>
+                  </>
+                )}
+                {generatedAssets.length === 0 ? null : (
+                  <button
+                    className="text-brand-600 hover:underline"
+                    onClick={() => setAttachOpen(true)}
+                  >
+                    Attach more
+                  </button>
+                )}
+              </div>
             }
           >
             {generatedAssets.length === 0 ? (

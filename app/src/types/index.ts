@@ -62,6 +62,13 @@ export interface ContentItem {
   body: string;
   tags: string[];
   pinned: boolean;
+  /**
+   * Optional timestamp (ms since epoch) for when the user marked this asset
+   * as published to its target platform from the Publishing Workspace.
+   * Lets us show "X of N published" progress on a campaign without
+   * needing platform integrations.
+   */
+  publishedAt?: number;
   createdAt: number;
   updatedAt: number;
 }

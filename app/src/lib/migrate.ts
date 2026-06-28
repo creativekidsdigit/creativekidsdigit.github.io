@@ -148,6 +148,10 @@ export function sanitizeContent(v: unknown): ContentItem | null {
     body: asString(v.body),
     tags: asStringArray(v.tags),
     pinned: asBool(v.pinned),
+    publishedAt:
+      typeof v.publishedAt === "number" && Number.isFinite(v.publishedAt)
+        ? v.publishedAt
+        : undefined,
     createdAt: asNumber(v.createdAt, now()),
     updatedAt: asNumber(v.updatedAt, now()),
   };
