@@ -704,6 +704,19 @@ export default function CampaignDetailPage() {
           campaignId={campaign.id}
           campaignPlatform={campaign.platform}
           onSubmit={async (vals) => {
+            // Soft duplicate guard: warn (but don't block) if a snapshot
+            // already exists for the same campaign + date. Snapshots are
+            // additive — entering one twice double-counts — but a user may
+            // legitimately log two different sources for the same day.
+            const duplicate = snapshots.some((s) => s.date === vals.date);
+            if (duplicate) {
+              const proceed = window.confirm(
+                "A snapshot already exists for this period.\n\n" +
+                  "Snapshots are summed over time, so creating another may " +
+                  "duplicate reporting for this date. Continue anyway?"
+              );
+              if (!proceed) return;
+            }
             await addPerformance(vals);
             toast.success("Snapshot added");
             setAddPerfOpen(false);
