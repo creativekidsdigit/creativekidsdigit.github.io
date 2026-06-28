@@ -11,6 +11,7 @@ import {
 import { useAppStore } from "@/store/useAppStore";
 import { PageHeader, SectionCard, Badge, EmptyState } from "@/components/ui";
 import { toast } from "@/components/Toast";
+import ExportMenu from "@/components/ExportMenu";
 import { copyText, formatRelative } from "@/lib/util";
 import {
   FORMAT_IDS,
@@ -43,6 +44,8 @@ export default function PublishingWorkspacePage() {
   const { id = "" } = useParams();
   const campaign = useAppStore((s) => s.campaigns.find((c) => c.id === id));
   const content = useAppStore((s) => s.content);
+  const products = useAppStore((s) => s.products);
+  const snapshots = useAppStore((s) => s.perfSnapshots);
   const updateContent = useAppStore((s) => s.updateContent);
 
   const assets = useMemo(
@@ -104,6 +107,16 @@ export default function PublishingWorkspacePage() {
         <Link to={`/campaigns/${campaign.id}`} className="btn-secondary">
           <ArrowLeft className="h-4 w-4" /> Back to campaign
         </Link>
+        <ExportMenu
+          scope="campaign"
+          label="Export bundle"
+          context={() => ({
+            campaign,
+            assets,
+            products,
+            snapshots: snapshots.filter((s) => s.campaignId === campaign.id),
+          })}
+        />
       </PageHeader>
 
       {/* Progress */}

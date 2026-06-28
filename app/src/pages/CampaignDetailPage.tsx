@@ -39,6 +39,7 @@ import {
   padSeries,
 } from "@/lib/analytics";
 import { campaignSummary } from "@/lib/reports";
+import ExportMenu from "@/components/ExportMenu";
 import {
   INSIGHT_LENSES,
   generateCampaignInsight,
@@ -230,6 +231,16 @@ export default function CampaignDetailPage() {
         <button className="btn-secondary" onClick={exportSummary}>
           <FileDown className="h-4 w-4" /> Export summary
         </button>
+        <ExportMenu
+          scope="campaign"
+          label="Export bundle"
+          context={() => ({
+            campaign,
+            assets: generatedAssets,
+            products,
+            snapshots,
+          })}
+        />
         <button
           className="btn-danger"
           onClick={async () => {

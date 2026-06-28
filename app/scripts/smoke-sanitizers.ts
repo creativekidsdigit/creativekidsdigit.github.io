@@ -813,6 +813,445 @@ check(
 );
 
 // =========================================================================
+// PR — R2 Content Export (zip encoder + exporters)
+// =========================================================================
+
+console.log("\n== zip encoder ==\n");
+
+const { createZip, readStoredZip, crc32 } = await import("../src/lib/zip");
+
+// CRC-32 known values from the standard.
+check("crc32(''): 0", crc32(new TextEncoder().encode("")) === 0);
+check(
+  "crc32('a'): 0xE8B7BE43",
+  crc32(new TextEncoder().encode("a")) === 0xe8b7be43
+);
+check(
+  "crc32('123456789'): 0xCBF43926",
+  crc32(new TextEncoder().encode("123456789")) === 0xcbf43926
+);
+
+// Empty archive
+const emptyZip = createZip([]);
+check(
+  "createZip([]): starts with EOCD signature (PK\\x05\\x06)",
+  emptyZip.length === 22 &&
+    emptyZip[0] === 0x50 &&
+    emptyZip[1] === 0x4b &&
+    emptyZip[2] === 0x05 &&
+    emptyZip[3] === 0x06
+);
+check(
+  "readStoredZip(empty): []",
+  readStoredZip(emptyZip).length === 0
+);
+
+// Round-trip
+const zipBytes = createZip([
+  { path: "a/hello.txt", data: "hello world" },
+  { path: "a/b.txt", data: "second" },
+  { path: "manifest.json", data: '{"schema":1}' },
+]);
+check(
+  "createZip([3]): local file header signature at offset 0 (PK\\x03\\x04)",
+  zipBytes[0] === 0x50 &&
+    zipBytes[1] === 0x4b &&
+    zipBytes[2] === 0x03 &&
+    zipBytes[3] === 0x04
+);
+check(
+  "createZip([3]): EOCD signature at end (PK\\x05\\x06)",
+  (() => {
+    const off = zipBytes.length - 22;
+    return (
+      zipBytes[off] === 0x50 &&
+      zipBytes[off + 1] === 0x4b &&
+      zipBytes[off + 2] === 0x05 &&
+      zipBytes[off + 3] === 0x06
+    );
+  })()
+);
+
+const roundTrip = readStoredZip(zipBytes);
+check(
+  "round-trip: same number of entries",
+  roundTrip.length === 3
+);
+check(
+  "round-trip: paths preserved in order",
+  roundTrip[0].path === "a/hello.txt" &&
+    roundTrip[1].path === "a/b.txt" &&
+    roundTrip[2].path === "manifest.json"
+);
+check(
+  "round-trip: contents preserved",
+  (() => {
+    const dec = new TextDecoder();
+    return (
+      dec.decode(roundTrip[0].data) === "hello world" &&
+      dec.decode(roundTrip[1].data) === "second" &&
+      dec.decode(roundTrip[2].data) === '{"schema":1}'
+    );
+  })()
+);
+check(
+  "round-trip: CRCs match content",
+  roundTrip.every(
+    (e) => e.crc === crc32(e.data)
+  )
+);
+
+// UTF-8 path handling
+const utf8Zip = createZip([{ path: "héllo/wörld.txt", data: "ünicode" }]);
+const utf8Out = readStoredZip(utf8Zip);
+check(
+  "round-trip: UTF-8 paths preserved",
+  utf8Out[0].path === "héllo/wörld.txt"
+);
+check(
+  "round-trip: UTF-8 content preserved",
+  new TextDecoder().decode(utf8Out[0].data) === "ünicode"
+);
+
+// Byte-array data (already encoded)
+const binaryZip = createZip([
+  { path: "raw.bin", data: new Uint8Array([1, 2, 3, 4, 5]) },
+]);
+const binOut = readStoredZip(binaryZip);
+check(
+  "round-trip: Uint8Array data preserved byte-for-byte",
+  binOut[0].data.length === 5 &&
+    binOut[0].data[0] === 1 &&
+    binOut[0].data[4] === 5
+);
+
+console.log("\n== exporters — fixtures ==\n");
+
+const { buildCampaignZipEntries } = await import(
+  "../src/lib/exporters/campaignZip"
+);
+const { buildProductZipEntries } = await import(
+  "../src/lib/exporters/productZip"
+);
+const { defaultFormatFor, assetAsText } = await import(
+  "../src/lib/exporters/assetText"
+);
+const { EXPORTERS, getExportersForScope } = await import(
+  "../src/lib/exporters"
+);
+
+// Registry shape
+check(
+  "registry: every entry has scope, id, label, mime, filenameFor, produce",
+  EXPORTERS.every(
+    (e) =>
+      typeof e.id === "string" &&
+      typeof e.label === "string" &&
+      typeof e.mime === "string" &&
+      typeof e.scope === "string" &&
+      typeof e.filenameFor === "function" &&
+      typeof e.produce === "function"
+  )
+);
+check(
+  "registry: ids are unique",
+  new Set(EXPORTERS.map((e) => e.id)).size === EXPORTERS.length
+);
+check(
+  "registry: getExportersForScope('campaign') returns campaign-zip",
+  getExportersForScope("campaign").some((e) => e.id === "campaign-zip")
+);
+check(
+  "registry: getExportersForScope('product') returns product-zip",
+  getExportersForScope("product").some((e) => e.id === "product-zip")
+);
+check(
+  "registry: getExportersForScope('asset') returns asset-text",
+  getExportersForScope("asset").some((e) => e.id === "asset-text")
+);
+
+// Build a minimal campaign + assets fixture
+const fixtureProduct = sanitizers.products([
+  {
+    id: "p1",
+    title: "ADHD Toolkit",
+    category: "Printables",
+    audience: "Parents 6-10",
+    problemSolved: "Homework meltdowns",
+    benefits: ["Calm transitions"],
+    keywords: ["adhd", "after-school"],
+    pricing: "$19",
+    platform: "payhip",
+    status: "ready",
+    notes: "",
+  },
+])[0];
+
+const fixtureCampaign = sanitizers.campaigns([
+  {
+    id: "c1",
+    name: "ADHD Toolkit — Back-to-school",
+    productIds: ["p1"],
+    platform: "pinterest",
+    goal: "sales",
+    startDate: "2026-08-01",
+    status: "draft",
+    notes: "Test campaign",
+    tags: ["back-to-school"],
+  },
+])[0];
+
+const fixtureAssets = sanitizers.content([
+  {
+    id: "a1",
+    productId: "p1",
+    campaignId: "c1",
+    kind: "copy",
+    templateId: "t1",
+    title: "ADHD Toolkit · Long Description",
+    body: "# Heading\n\nThis is **bold** copy.",
+    tags: ["copy"],
+    pinned: false,
+    createdAt: 1000,
+    updatedAt: 1000,
+  },
+  {
+    id: "a2",
+    productId: "p1",
+    campaignId: "c1",
+    kind: "pinterest",
+    templateId: "t2",
+    title: "ADHD Toolkit · 20 Pinterest titles",
+    body: "1. Title one\n2. Title two\n3. Title three",
+    tags: ["pinterest"],
+    pinned: false,
+    createdAt: 2000,
+    updatedAt: 2000,
+  },
+  {
+    id: "a3",
+    productId: "p1",
+    campaignId: "c1",
+    kind: "blog",
+    templateId: "t3",
+    title: "ADHD Toolkit · SEO blog article",
+    body: "# Title\n\nA paragraph with [link](https://example.com).",
+    tags: ["blog"],
+    pinned: false,
+    createdAt: 3000,
+    updatedAt: 3000,
+  },
+]);
+
+const campaignCtx = {
+  campaign: fixtureCampaign,
+  assets: fixtureAssets,
+  products: [fixtureProduct],
+  snapshots: [],
+};
+
+const campaignEntries = buildCampaignZipEntries(campaignCtx);
+
+check(
+  "campaign zip: includes README.md at the root",
+  campaignEntries.some((e) =>
+    e.path.endsWith("/README.md") || e.path === "README.md"
+  )
+);
+check(
+  "campaign zip: includes manifest.json",
+  campaignEntries.some((e) => e.path.endsWith("manifest.json"))
+);
+check(
+  "campaign zip: includes one file per asset (3 assets → at least 3+2 entries)",
+  campaignEntries.length >= 5
+);
+check(
+  "campaign zip: paths begin with the campaign slug",
+  campaignEntries.every((e) =>
+    e.path.startsWith("adhd-toolkit-back-to-school/")
+  )
+);
+check(
+  "campaign zip: blog asset becomes .html",
+  campaignEntries.some(
+    (e) => e.path.includes("/blog/") && e.path.endsWith(".html")
+  )
+);
+check(
+  "campaign zip: copy/pinterest assets become .txt",
+  campaignEntries.some(
+    (e) => e.path.includes("/product/") && e.path.endsWith(".txt")
+  ) &&
+    campaignEntries.some(
+      (e) => e.path.includes("/pinterest/") && e.path.endsWith(".txt")
+    )
+);
+check(
+  "campaign zip: blog HTML has <h1> from markdown",
+  (() => {
+    const blog = campaignEntries.find(
+      (e) => e.path.includes("/blog/") && typeof e.data === "string"
+    );
+    return blog ? (blog.data as string).includes("<h1>Title</h1>") : false;
+  })()
+);
+check(
+  "campaign zip: filenames strip the 'Product ·' prefix",
+  campaignEntries.some(
+    (e) =>
+      e.path.includes("long-description") || e.path.includes("pinterest-titles")
+  )
+);
+check(
+  "campaign zip: manifest.json is valid parseable JSON with schema=1",
+  (() => {
+    const m = campaignEntries.find((e) => e.path.endsWith("manifest.json"));
+    if (!m || typeof m.data !== "string") return false;
+    const parsed = JSON.parse(m.data);
+    return (
+      parsed.schema === 1 &&
+      parsed.campaign?.id === "c1" &&
+      Array.isArray(parsed.assets) &&
+      parsed.assets.length === 3
+    );
+  })()
+);
+check(
+  "campaign zip: manifest.assets[].file matches a real entry",
+  (() => {
+    const m = campaignEntries.find((e) => e.path.endsWith("manifest.json"));
+    const parsed = JSON.parse(m!.data as string);
+    const root = "adhd-toolkit-back-to-school/";
+    return parsed.assets.every((a: { file: string }) =>
+      campaignEntries.some((e) => e.path === root + a.file)
+    );
+  })()
+);
+
+// End-to-end produce()
+const campaignZip = EXPORTERS.find((e) => e.id === "campaign-zip")!;
+const blob = await campaignZip.produce(campaignCtx);
+check(
+  "campaign zip: produce() returns a Blob with the application/zip MIME",
+  blob.type === "application/zip" && blob.size > 0
+);
+check(
+  "campaign zip: produce() output is a valid ZIP (round-trip readable)",
+  (() => {
+    return blob.size > 22; // larger than just EOCD
+  })()
+);
+check(
+  "campaign zip: filename uses the campaign slug",
+  campaignZip.filenameFor(campaignCtx) === "adhd-toolkit-back-to-school.zip"
+);
+
+// Preview
+const campaignPreview = await campaignZip.preview!(campaignCtx);
+check(
+  "campaign zip: preview lists every entry",
+  campaignPreview.entries.length === campaignEntries.length
+);
+check(
+  "campaign zip: preview totalSize is sum of per-entry sizes",
+  campaignPreview.totalSize ===
+    campaignPreview.entries.reduce((s, e) => s + e.size, 0)
+);
+check(
+  "campaign zip: preview summary mentions file count",
+  campaignPreview.summary.includes(`${campaignPreview.entries.length} file`)
+);
+
+// Product exporter
+const productCtx = {
+  product: fixtureProduct,
+  assets: fixtureAssets,
+  products: [fixtureProduct],
+  snapshots: [],
+};
+const productEntries = buildProductZipEntries(productCtx);
+check(
+  "product zip: includes README.md",
+  productEntries.some((e) => e.path.endsWith("/README.md"))
+);
+check(
+  "product zip: includes manifest.json with product.id",
+  (() => {
+    const m = productEntries.find((e) => e.path.endsWith("manifest.json"));
+    if (!m) return false;
+    const parsed = JSON.parse(m.data as string);
+    return parsed.schema === 1 && parsed.product?.id === "p1";
+  })()
+);
+check(
+  "product zip: paths begin with the product slug",
+  productEntries.every((e) => e.path.startsWith("adhd-toolkit/"))
+);
+check(
+  "product zip: blog asset still becomes .html",
+  productEntries.some(
+    (e) => e.path.includes("/blog/") && e.path.endsWith(".html")
+  )
+);
+check(
+  "product zip: filename uses product slug",
+  EXPORTERS.find((e) => e.id === "product-zip")!.filenameFor(productCtx) ===
+    "adhd-toolkit.zip"
+);
+
+// Asset text exporter
+const assetCtx = {
+  asset: fixtureAssets[2], // the blog one
+  assets: [fixtureAssets[2]],
+  products: [fixtureProduct],
+  snapshots: [],
+};
+check(
+  "asset text: blog asset defaults to html",
+  defaultFormatFor("blog", "Anything").format === "html"
+);
+check(
+  "asset text: pinterest defaults to plain",
+  defaultFormatFor("pinterest", "Anything").format === "plain"
+);
+check(
+  "asset text: payhip sales page → html regardless of kind",
+  defaultFormatFor("copy", "ADHD Toolkit · Payhip Sales Page").format === "html"
+);
+check(
+  "asset text: SEO defaults to markdown",
+  defaultFormatFor("seo", "Anything").format === "markdown"
+);
+
+const assetBlob = await EXPORTERS.find((e) => e.id === "asset-text")!.produce(
+  assetCtx
+);
+check(
+  "asset text: produce() returns text/plain blob",
+  assetBlob.type.startsWith("text/plain") && assetBlob.size > 0
+);
+check(
+  "asset text: filename uses asset slug + correct extension",
+  EXPORTERS.find((e) => e.id === "asset-text")!.filenameFor(assetCtx) ===
+    "adhd-toolkit-seo-blog-article.html"
+);
+check(
+  "asset text: assetAsText converts markdown to plain by default kind",
+  // blog kind → html, so output has <h1>
+  assetAsText(fixtureAssets[2]).includes("<h1>")
+);
+check(
+  "asset text: assetAsText with explicit 'plain' strips markers",
+  assetAsText(fixtureAssets[2], "plain") === "Title\n\nA paragraph with link."
+);
+check(
+  "asset text: preview reports one entry",
+  (await EXPORTERS.find((e) => e.id === "asset-text")!.preview!(assetCtx))
+    .entries.length === 1
+);
+
+// =========================================================================
 // final
 // =========================================================================
 

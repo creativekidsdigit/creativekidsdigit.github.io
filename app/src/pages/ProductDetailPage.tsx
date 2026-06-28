@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { PageHeader, SectionCard, Badge, EmptyState } from "@/components/ui";
 import ProductForm from "@/components/ProductForm";
 import { toast } from "@/components/Toast";
+import ExportMenu from "@/components/ExportMenu";
 import { formatRelative } from "@/lib/util";
 
 export default function ProductDetailPage() {
@@ -47,6 +48,16 @@ export default function ProductDetailPage() {
         >
           <Zap className="h-4 w-4" /> Generate copy
         </button>
+        <ExportMenu
+          scope="product"
+          label="Export bundle"
+          context={() => ({
+            product,
+            assets: productContent,
+            products: [product],
+            snapshots: [],
+          })}
+        />
         <button
           className="btn-danger"
           onClick={async () => {

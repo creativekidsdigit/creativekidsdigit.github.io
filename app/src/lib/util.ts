@@ -17,7 +17,14 @@ export async function copyText(text: string): Promise<boolean> {
 }
 
 export function downloadFile(filename: string, content: string, mime = "text/plain") {
-  const blob = new Blob([content], { type: mime });
+  downloadBlob(filename, new Blob([content], { type: mime }));
+}
+
+/**
+ * Trigger a browser download for a Blob. Single source of truth for
+ * the create-anchor-click-revoke dance used by every exporter.
+ */
+export function downloadBlob(filename: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
