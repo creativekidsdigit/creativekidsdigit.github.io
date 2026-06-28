@@ -90,4 +90,5 @@ export const K = {
   ideas: "ideas",
   campaigns: "campaigns",
   perfSnapshots: "perfSnapshots",
+  campaignBuilderDraft: "campaignBuilderDraft",
 } as const;
