@@ -41,7 +41,7 @@ NAME_RE = re.compile(r'\sname\s*=\s*"([^"]+)"', re.IGNORECASE)
 # Directories whose HTML is a self-contained client-side app (e.g. SPA hash
 # routes like #/lessons that this validator should not try to resolve as
 # in-page anchors).
-SKIP_DIRS = {"teacher-app"}
+SKIP_DIRS = {"teacher-app", "app", "node_modules", "dist", "_site"}
 
 HTML_FILES = sorted(
     p for p in ROOT.rglob("*.html")
