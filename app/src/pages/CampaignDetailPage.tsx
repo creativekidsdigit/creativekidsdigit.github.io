@@ -14,6 +14,7 @@ import {
   Pin,
   AlertTriangle,
   Send,
+  Upload,
 } from "lucide-react";
 import {
   CartesianGrid,
@@ -29,6 +30,7 @@ import { PageHeader, SectionCard, Badge, EmptyState } from "@/components/ui";
 import Modal from "@/components/Modal";
 import CampaignForm from "@/components/CampaignForm";
 import PerformanceEntryForm from "@/components/PerformanceEntryForm";
+import ImportDataModal from "@/components/ImportDataModal";
 import { toast } from "@/components/Toast";
 import { copyText, downloadFile, formatDate, formatRelative, slugify } from "@/lib/util";
 import {
@@ -82,6 +84,7 @@ export default function CampaignDetailPage() {
   const autosave = useAppStore((s) => s.settings.autosave);
 
   const [addPerfOpen, setAddPerfOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editPerf, setEditPerf] = useState<PerformanceSnapshot | null>(null);
   const [insightLens, setInsightLens] =
     useState<CampaignInsightOptions["lens"]>("performance");
@@ -349,12 +352,21 @@ export default function CampaignDetailPage() {
           <SectionCard
             title={`Performance history (${snapshots.length})`}
             action={
-              <button
-                className="btn-primary h-8"
-                onClick={() => setAddPerfOpen(true)}
-              >
-                <Plus className="h-3.5 w-3.5" /> Add snapshot
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  className="btn-secondary h-8"
+                  onClick={() => setImportOpen(true)}
+                  title="Import from a CSV file"
+                >
+                  <Upload className="h-3.5 w-3.5" /> Import data
+                </button>
+                <button
+                  className="btn-primary h-8"
+                  onClick={() => setAddPerfOpen(true)}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add snapshot
+                </button>
+              </div>
             }
           >
             {snapshots.length === 0 ? (
@@ -362,12 +374,20 @@ export default function CampaignDetailPage() {
                 title="No performance data yet"
                 hint="Record what you see in your platform dashboard. Charts and AI insights light up once you add a snapshot."
                 action={
-                  <button
-                    className="btn-primary mt-3"
-                    onClick={() => setAddPerfOpen(true)}
-                  >
-                    <Plus className="h-4 w-4" /> Add first snapshot
-                  </button>
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setImportOpen(true)}
+                    >
+                      <Upload className="h-4 w-4" /> Import CSV
+                    </button>
+                    <button
+                      className="btn-primary"
+                      onClick={() => setAddPerfOpen(true)}
+                    >
+                      <Plus className="h-4 w-4" /> Add first snapshot
+                    </button>
+                  </div>
                 }
               />
             ) : (
@@ -726,6 +746,13 @@ export default function CampaignDetailPage() {
           </SectionCard>
         </div>
       </div>
+
+      {/* ---------- Import performance data modal ---------- */}
+      <ImportDataModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        context={{ campaignId: campaign.id, existingSnapshots: snapshots }}
+      />
 
       {/* ---------- Add performance modal ---------- */}
       <Modal
