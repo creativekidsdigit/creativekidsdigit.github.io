@@ -7,6 +7,7 @@ import {
   generateOpportunityIdeas,
   type AiOpportunityDraft,
 } from "@/lib/research";
+import { buildScore } from "@/lib/opportunityScore";
 import { ScorePill } from "./atoms";
 
 interface Props {
@@ -217,14 +218,11 @@ export default function IdeaGeneratorModal({ onClose, onCreated }: Props) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-sm font-medium">{d.title}</span>
+                      {/* Compute the preview score with the SAME weighted
+                          formula used post-save, so the number the user sees
+                          here matches what lands in the pipeline. */}
                       <ScorePill
-                        total={Math.round(
-                          Object.values(d.factors).reduce(
-                            (s, v) => s + (typeof v === "number" ? v : 0),
-                            0
-                          ) /
-                            Math.max(1, Object.keys(d.factors).length)
-                        )}
+                        total={buildScore(d.factors, settings).total}
                       />
                     </div>
                     {d.description && (

@@ -44,6 +44,14 @@ export default function InsightsTab() {
     [products, opportunities, campaigns, snapshots]
   );
 
+  // Title lookup so the gap-analysis findings can render readable chips
+  // instead of raw opportunity ids.
+  const opportunityTitleById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const o of opportunities) m.set(o.id, o.title);
+    return m;
+  }, [opportunities]);
+
   const [biLoading, setBiLoading] = useState(false);
   const [biText, setBiText] = useState<string>("");
   const [biError, setBiError] = useState<string | null>(null);
@@ -108,7 +116,7 @@ export default function InsightsTab() {
                           to={`/research/${id}`}
                           className="chip text-[10px] hover:bg-slate-200 dark:hover:bg-slate-700"
                         >
-                          {id}
+                          {opportunityTitleById.get(id) ?? "(deleted)"}
                         </Link>
                       ))}
                     </div>
