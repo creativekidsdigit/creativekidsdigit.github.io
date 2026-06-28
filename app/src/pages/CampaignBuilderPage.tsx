@@ -323,6 +323,21 @@ export default function CampaignBuilderPage() {
       toast.error("No tasks to run — select at least one platform.");
       return;
     }
+    // Guard against accidental destruction of completed work. The Generate
+    // button is the same primary CTA both for the first run and for a
+    // restart, so without this prompt a user reviewing a finished batch
+    // could silently wipe every approved asset with one click.
+    if (tasks.length > 0) {
+      const surviving = tasks.filter(
+        (t) => t.status === "succeeded" || t.status === "failed"
+      ).length;
+      const ok = window.confirm(
+        surviving === 0
+          ? "Start a new generation? Any queued tasks will be replaced."
+          : `Discard ${surviving} existing asset${surviving === 1 ? "" : "s"} and start a fresh generation? This cannot be undone.`
+      );
+      if (!ok) return;
+    }
     // Wipe any partial draft from a previous attempt before starting fresh.
     await clearDraft();
     const initial: TaskState[] = previewPlan.map((t) => ({
@@ -462,8 +477,12 @@ export default function CampaignBuilderPage() {
         );
       }
 
-      // Successful save invalidates the draft.
-      await clearDraft();
+      // Only clear the draft when every approved asset persisted. If any
+      // failed, the AI outputs live in the draft and are the user's only
+      // path back to those bytes — wiping the draft would lose them.
+      if (failedSaves.length === 0) {
+        await clearDraft();
+      }
       nav(`/campaigns/${campaign.id}`);
     } catch (e: unknown) {
       toast.error((e as Error).message);
