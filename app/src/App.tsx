@@ -17,6 +17,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import CampaignAnalyticsPage from "./pages/CampaignAnalyticsPage";
 import CampaignDetailPage from "./pages/CampaignDetailPage";
 import CampaignBuilderPage from "./pages/CampaignBuilderPage";
+import PublishingWorkspacePage from "./pages/PublishingWorkspacePage";
 import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
@@ -37,6 +38,10 @@ export default function App() {
           <Route path="builder" element={<CampaignBuilderPage />} />
           <Route path="campaigns" element={<CampaignAnalyticsPage />} />
           <Route path="campaigns/:id" element={<CampaignDetailPage />} />
+          <Route
+            path="campaigns/:id/publish"
+            element={<PublishingWorkspacePage />}
+          />
           <Route path="prompts" element={<PromptLibraryPage />} />
           <Route path="library" element={<ContentLibraryPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />

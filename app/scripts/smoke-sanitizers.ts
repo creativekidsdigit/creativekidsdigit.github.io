@@ -305,6 +305,49 @@ check(
   ])[0].campaignId === undefined
 );
 
+// --- publishedAt round-trip (PR / Publishing Workspace) ---
+check(
+  "content: publishedAt preserved when finite number",
+  sanitizers.content([
+    {
+      id: "x1",
+      title: "T",
+      body: "B",
+      kind: "copy",
+      publishedAt: 1234567890000,
+    },
+  ])[0].publishedAt === 1234567890000
+);
+check(
+  "content: publishedAt rejected when string",
+  sanitizers.content([
+    {
+      id: "x1",
+      title: "T",
+      body: "B",
+      kind: "copy",
+      publishedAt: "yesterday",
+    },
+  ])[0].publishedAt === undefined
+);
+check(
+  "content: publishedAt rejected when NaN / Infinity",
+  (() => {
+    const a = sanitizers.content([
+      { id: "x1", title: "T", body: "B", kind: "copy", publishedAt: NaN },
+    ])[0].publishedAt;
+    const b = sanitizers.content([
+      { id: "x2", title: "T", body: "B", kind: "copy", publishedAt: Infinity },
+    ])[0].publishedAt;
+    return a === undefined && b === undefined;
+  })()
+);
+check(
+  "content: publishedAt absent → stays undefined",
+  sanitizers.content([{ id: "x1", title: "T", body: "B", kind: "copy" }])[0]
+    .publishedAt === undefined
+);
+
 // =========================================================================
 // PR #54 — analytics math
 // =========================================================================
@@ -368,10 +411,6 @@ check(
   "byPlatform: sorted by revenue desc",
   platforms[0].platform === "pinterest" && platforms[0].revenue === 300
 );
-
-// =========================================================================
-// final
-// =========================================================================
 
 // =========================================================================
 // PR #58 — Campaign Builder
@@ -621,6 +660,157 @@ await (async () => {
   );
 })();
 
+
+// =========================================================================
+// PR — Publishing Workspace formatters
+// =========================================================================
+
+console.log("\n== formatters — markdown → plain / html ==\n");
+
+const { format, toPlainText, toHtml, FORMAT_IDS } = await import(
+  "../src/lib/formatters"
+);
+
+// ----- toPlainText -----
+
+check(
+  "toPlainText: drops heading markers",
+  toPlainText("# Title\n## Sub").includes("Title") &&
+    !toPlainText("# Title\n## Sub").includes("#")
+);
+check(
+  "toPlainText: drops bold markers, keeps text",
+  toPlainText("This is **important** stuff") === "This is important stuff"
+);
+check(
+  "toPlainText: drops italic markers but not bullet asterisks",
+  (() => {
+    const out = toPlainText("Word *emph* and\n* bullet");
+    return out.includes("Word emph and") && out.includes("* bullet");
+  })()
+);
+check(
+  "toPlainText: drops underscore italic",
+  toPlainText("a _word_ here") === "a word here"
+);
+check(
+  "toPlainText: drops inline code backticks",
+  toPlainText("see `useEffect` hook") === "see useEffect hook"
+);
+check(
+  "toPlainText: links collapse to their text",
+  toPlainText("Visit [Pinterest](https://pinterest.com) now") ===
+    "Visit Pinterest now"
+);
+check(
+  "toPlainText: blockquote markers dropped",
+  toPlainText("> quoted line") === "quoted line"
+);
+check(
+  "toPlainText: horizontal rules removed",
+  !toPlainText("para\n\n---\n\npara2").includes("---")
+);
+check(
+  "toPlainText: fenced code blocks lose fences keep body",
+  toPlainText("```\ncode here\n```") === "code here"
+);
+check(
+  "toPlainText: collapses runs of blank lines",
+  !/\n{3,}/.test(toPlainText("a\n\n\n\nb"))
+);
+
+// ----- toHtml -----
+
+check(
+  "toHtml: H1 wraps with <h1>",
+  toHtml("# Hello").includes("<h1>Hello</h1>")
+);
+check(
+  "toHtml: bold becomes <strong>",
+  toHtml("a **bold** word").includes("<strong>bold</strong>")
+);
+check(
+  "toHtml: italic becomes <em>",
+  toHtml("a *softer* word").includes("<em>softer</em>")
+);
+check(
+  "toHtml: inline code becomes <code>",
+  toHtml("use `x` here").includes("<code>x</code>")
+);
+check(
+  "toHtml: bullet lists become <ul><li>",
+  (() => {
+    const html = toHtml("- one\n- two");
+    return html.includes("<ul>") && html.includes("<li>one</li>");
+  })()
+);
+check(
+  "toHtml: numbered lists become <ol><li>",
+  (() => {
+    const html = toHtml("1. first\n2. second");
+    return html.includes("<ol>") && html.includes("<li>first</li>");
+  })()
+);
+check(
+  "toHtml: paragraphs wrapped",
+  toHtml("just text").includes("<p>just text</p>")
+);
+check(
+  "toHtml: links become <a href>",
+  toHtml("see [doc](https://example.com)").includes(
+    '<a href="https://example.com">doc</a>'
+  )
+);
+check(
+  "toHtml: blockquote becomes <blockquote>",
+  toHtml("> hello").includes("<blockquote>hello</blockquote>")
+);
+check(
+  "toHtml: fenced code blocks become <pre><code>",
+  (() => {
+    const html = toHtml("```\nlet x = 1\n```");
+    return html.includes("<pre><code>") && html.includes("let x = 1");
+  })()
+);
+check(
+  "toHtml: escapes < > & in plain text",
+  (() => {
+    const html = toHtml("if a < b && c > 0");
+    return html.includes("&lt;") && html.includes("&gt;") && html.includes("&amp;");
+  })()
+);
+check(
+  "toHtml: hard line breaks within paragraph become <br>",
+  toHtml("line one\nline two").includes("<br>")
+);
+check(
+  "toHtml: horizontal rule",
+  toHtml("a\n\n---\n\nb").includes("<hr>")
+);
+
+// ----- format() entry-point -----
+
+check(
+  "format: markdown is passthrough",
+  format("# As-is", "markdown") === "# As-is"
+);
+check(
+  "format: plain is toPlainText",
+  format("# Hi", "plain") === toPlainText("# Hi")
+);
+check(
+  "format: html is toHtml",
+  format("# Hi", "html") === toHtml("# Hi")
+);
+
+// ----- FORMAT_IDS sanity -----
+check(
+  "FORMAT_IDS contains the three supported formats",
+  FORMAT_IDS.length === 3 &&
+    FORMAT_IDS.includes("plain") &&
+    FORMAT_IDS.includes("markdown") &&
+    FORMAT_IDS.includes("html")
+);
 
 // =========================================================================
 // final
