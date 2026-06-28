@@ -1252,6 +1252,467 @@ check(
 );
 
 // =========================================================================
+// PR — Product Research module
+// =========================================================================
+
+console.log("\n== product research — sanitizers ==\n");
+
+// Opportunity sanitizer
+check(
+  "opportunity: null → []",
+  sanitizers.opportunities(null).length === 0
+);
+check(
+  "opportunity: missing title dropped",
+  sanitizers.opportunities([{ id: "o1" }, { id: "o2", title: "Real idea" }])
+    .length === 1
+);
+check(
+  "opportunity: unknown status → 'idea'",
+  sanitizers.opportunities([{ id: "o1", title: "X", status: "imploded" }])[0]
+    .status === "idea"
+);
+check(
+  "opportunity: unknown trend → 'stable'",
+  sanitizers.opportunities([{ id: "o1", title: "X", trend: "rocket" }])[0]
+    .trend === "stable"
+);
+check(
+  "opportunity: source defaults to 'manual'",
+  sanitizers.opportunities([{ id: "o1", title: "X" }])[0].source === "manual"
+);
+check(
+  "opportunity: source accepts 'ai-generated'",
+  sanitizers.opportunities([
+    { id: "o1", title: "X", source: "ai-generated" },
+  ])[0].source === "ai-generated"
+);
+check(
+  "opportunity: score factor values clamped to [0,100]",
+  (() => {
+    const out = sanitizers.opportunities([
+      {
+        id: "o1",
+        title: "X",
+        score: { total: 200, factors: { searchDemand: -50, competition: 500 } },
+      },
+    ])[0];
+    return (
+      out.score.total === 100 &&
+      out.score.factors.searchDemand === 0 &&
+      out.score.factors.competition === 100
+    );
+  })()
+);
+check(
+  "opportunity: non-numeric factors dropped",
+  (() => {
+    const out = sanitizers.opportunities([
+      {
+        id: "o1",
+        title: "X",
+        score: { total: 50, factors: { searchDemand: "high" } },
+      },
+    ])[0];
+    return !("searchDemand" in out.score.factors);
+  })()
+);
+check(
+  "opportunity: linkedProductId preserved when string",
+  sanitizers.opportunities([
+    { id: "o1", title: "X", linkedProductId: "p1" },
+  ])[0].linkedProductId === "p1"
+);
+
+// Keyword sanitizer
+check(
+  "keyword: missing term dropped",
+  sanitizers.keywords([{ id: "k1" }, { id: "k2", term: "adhd" }]).length === 1
+);
+check(
+  "keyword: unknown type → 'long-tail'",
+  sanitizers.keywords([{ id: "k1", term: "x", type: "weird" }])[0].type ===
+    "long-tail"
+);
+check(
+  "keyword: invalid trend dropped to undefined",
+  sanitizers.keywords([
+    { id: "k1", term: "x", trend: "exploding" },
+  ])[0].trend === undefined
+);
+
+// Competitor sanitizer
+check(
+  "competitor: missing productTitle dropped",
+  sanitizers.competitors([{ id: "c1" }, { id: "c2", productTitle: "Acme" }])
+    .length === 1
+);
+check(
+  "competitor: url preserved when string",
+  sanitizers.competitors([
+    { id: "c1", productTitle: "Acme", url: "https://acme.test" },
+  ])[0].url === "https://acme.test"
+);
+
+// =========================================================================
+// PR — Product Research — opportunity scoring math
+// =========================================================================
+
+console.log("\n== product research — opportunityScore ==\n");
+
+const {
+  buildScore,
+  computeScoreTotal,
+  scoreBand,
+  scoreContributors,
+} = await import("../src/lib/opportunityScore");
+
+const testSettings: import("../src/types").AppSettings = {
+  activeProvider: "openai",
+  theme: "system",
+  brandVoice: "",
+  defaultAudience: "",
+  autosave: true,
+  providers: {
+    openai: { id: "openai", model: "gpt-4o-mini", enabled: true },
+    anthropic: { id: "anthropic", model: "claude-sonnet-4-5", enabled: true },
+    google: { id: "google", model: "gemini-2.5-flash", enabled: true },
+    openrouter: { id: "openrouter", model: "anthropic/claude-sonnet-4.5", enabled: true },
+    ollama: { id: "ollama", model: "llama3.2", enabled: true },
+  },
+  researchScoreWeights: {
+    searchDemand: 1,
+    competition: 1,
+    seasonality: 1,
+    commercialIntent: 1,
+    catalogFit: 1,
+    reusability: 1,
+    creationEffort: 1,
+    revenuePotential: 1,
+  },
+};
+
+check(
+  "score: all 50s → 50",
+  computeScoreTotal(
+    {
+      searchDemand: 50,
+      competition: 50,
+      seasonality: 50,
+      commercialIntent: 50,
+      catalogFit: 50,
+      reusability: 50,
+      creationEffort: 50,
+      revenuePotential: 50,
+    },
+    testSettings
+  ) === 50
+);
+check(
+  "score: missing factors default to neutral (50)",
+  computeScoreTotal({}, testSettings) === 50
+);
+check(
+  "score: all 100s with equal weights → 100",
+  computeScoreTotal(
+    {
+      searchDemand: 100,
+      competition: 100,
+      seasonality: 100,
+      commercialIntent: 100,
+      catalogFit: 100,
+      reusability: 100,
+      creationEffort: 100,
+      revenuePotential: 100,
+    },
+    testSettings
+  ) === 100
+);
+check(
+  "score: weighted average respects weights",
+  (() => {
+    // Explicit 0 weights for unspecified factors so the math is unambiguous.
+    const weighted: import("../src/types").AppSettings = {
+      ...testSettings,
+      researchScoreWeights: {
+        searchDemand: 4, // dominant
+        revenuePotential: 1,
+        competition: 0,
+        seasonality: 0,
+        commercialIntent: 0,
+        catalogFit: 0,
+        reusability: 0,
+        creationEffort: 0,
+      },
+    };
+    // searchDemand 80, revenuePotential 20 → (4*80 + 1*20) / 5 = 68
+    const total = computeScoreTotal(
+      { searchDemand: 80, revenuePotential: 20 },
+      weighted
+    );
+    return total === 68;
+  })()
+);
+check(
+  "scoreBand thresholds: 80↑ excellent, 65↑ high, 45↑ medium",
+  scoreBand(85) === "excellent" &&
+    scoreBand(70) === "high" &&
+    scoreBand(50) === "medium" &&
+    scoreBand(20) === "low"
+);
+check(
+  "buildScore: returns total + factors",
+  (() => {
+    const s = buildScore({ searchDemand: 100, competition: 0 }, testSettings);
+    return s.total >= 0 && "factors" in s;
+  })()
+);
+
+// scoreContributors
+check(
+  "contributors: drivers are top 3 by contribution",
+  (() => {
+    const out = scoreContributors(
+      {
+        searchDemand: 100,
+        competition: 10,
+        seasonality: 90,
+        commercialIntent: 80,
+        catalogFit: 50,
+      },
+      testSettings
+    );
+    const driverNames = out.drivers.map((d) => d.factor);
+    return (
+      driverNames.length === 3 &&
+      driverNames.includes("searchDemand") &&
+      driverNames.includes("seasonality") &&
+      driverNames.includes("commercialIntent")
+    );
+  })()
+);
+check(
+  "contributors: blockers only include below-neutral (50)",
+  (() => {
+    const out = scoreContributors(
+      {
+        searchDemand: 100,
+        competition: 20, // below neutral
+        creationEffort: 30, // below neutral
+        catalogFit: 90,
+      },
+      testSettings
+    );
+    return (
+      out.blockers.length === 2 &&
+      out.blockers.every((b) => b.value < 50)
+    );
+  })()
+);
+check(
+  "contributors: no blockers when every factor is above neutral",
+  scoreContributors(
+    {
+      searchDemand: 80,
+      competition: 70,
+      seasonality: 60,
+      commercialIntent: 75,
+      catalogFit: 85,
+      reusability: 70,
+      creationEffort: 60,
+      revenuePotential: 90,
+    },
+    testSettings
+  ).blockers.length === 0
+);
+
+// =========================================================================
+// PR — Product Research — recommendedNextAction
+// =========================================================================
+
+console.log("\n== product research — recommendedNextAction ==\n");
+
+const { recommendedNextAction } = await import(
+  "../src/lib/opportunityNextAction"
+);
+
+function mockOpp(
+  overrides: Partial<import("../src/types").Opportunity>
+): import("../src/types").Opportunity {
+  return {
+    id: "o1",
+    title: "X",
+    description: "",
+    category: "",
+    audience: "",
+    keywords: [],
+    trend: "stable",
+    status: "idea",
+    score: { total: 50, factors: {} },
+    notes: "",
+    relatedProductIds: [],
+    source: "manual",
+    createdAt: 0,
+    updatedAt: 0,
+    ...overrides,
+  };
+}
+
+check(
+  "next-action: linked product → open-linked-product",
+  recommendedNextAction(mockOpp({ linkedProductId: "p1" })).id ===
+    "open-linked-product"
+);
+check(
+  "next-action: idea with no factors → rate-factors",
+  recommendedNextAction(
+    mockOpp({ status: "idea", score: { total: 0, factors: {} } })
+  ).id === "rate-factors"
+);
+check(
+  "next-action: idea with low score → archive-low-score",
+  recommendedNextAction(
+    mockOpp({
+      status: "idea",
+      score: { total: 30, factors: { searchDemand: 30 } },
+    })
+  ).id === "archive-low-score"
+);
+check(
+  "next-action: idea with excellent score → advance-to-planned",
+  recommendedNextAction(
+    mockOpp({
+      status: "idea",
+      score: { total: 85, factors: { searchDemand: 85 } },
+    })
+  ).id === "advance-to-planned"
+);
+check(
+  "next-action: planned → convert to product",
+  recommendedNextAction(
+    mockOpp({
+      status: "planned",
+      score: { total: 70, factors: { searchDemand: 70 } },
+    })
+  ).id === "convert"
+);
+check(
+  "next-action: ready → advance-to-published",
+  recommendedNextAction(
+    mockOpp({
+      status: "ready",
+      score: { total: 70, factors: { searchDemand: 70 } },
+    })
+  ).id === "advance-to-published"
+);
+
+// =========================================================================
+// PR — Product Research — gapAnalysis additions
+// =========================================================================
+
+console.log("\n== product research — gapAnalysis ==\n");
+
+const { analyzeGaps } = await import("../src/lib/gapAnalysis");
+
+function mockProduct(
+  overrides: Partial<import("../src/types").Product>
+): import("../src/types").Product {
+  return {
+    id: "p" + Math.random().toString(36).slice(2, 6),
+    title: "Unnamed",
+    category: "",
+    audience: "",
+    problemSolved: "",
+    benefits: [],
+    keywords: [],
+    pricing: "",
+    platform: "payhip",
+    status: "ready",
+    notes: "",
+    createdAt: 0,
+    updatedAt: 0,
+    ...overrides,
+  };
+}
+
+check(
+  "gaps: empty catalog gets the 'start with opportunities' note",
+  analyzeGaps([], [], [], []).some((f) => f.id === "empty:catalog")
+);
+
+check(
+  "gaps: missing beginner detected when catalog has no entry-level product",
+  (() => {
+    const products = [
+      mockProduct({ title: "ADHD Mastery Workbook" }),
+      mockProduct({ title: "Calm Corner Premium" }),
+    ];
+    const out = analyzeGaps(products, [], [], []);
+    return out.some((f) => f.id === "tier:beginner-missing");
+  })()
+);
+
+check(
+  "gaps: beginner present → no beginner-missing finding",
+  (() => {
+    const products = [
+      mockProduct({ title: "ADHD Mastery Workbook" }),
+      mockProduct({ title: "Getting Started With Calm Mornings" }),
+    ];
+    const out = analyzeGaps(products, [], [], []);
+    return !out.some((f) => f.id === "tier:beginner-missing");
+  })()
+);
+
+check(
+  "gaps: missing premium detected when catalog has no upper tier",
+  (() => {
+    const products = [
+      mockProduct({ title: "Beginner ADHD Toolkit" }),
+      mockProduct({ title: "Standard Worksheet Pack" }),
+    ];
+    const out = analyzeGaps(products, [], [], []);
+    return out.some((f) => f.id === "tier:premium-missing");
+  })()
+);
+
+check(
+  "gaps: premium present → no premium-missing finding",
+  (() => {
+    const products = [
+      mockProduct({ title: "Beginner ADHD Toolkit" }),
+      mockProduct({ title: "ADHD Mastery — Premium Edition" }),
+    ];
+    const out = analyzeGaps(products, [], [], []);
+    return !out.some((f) => f.id === "tier:premium-missing");
+  })()
+);
+
+check(
+  "gaps: solo categories get a 'companion' finding",
+  (() => {
+    const products = [
+      mockProduct({ title: "Beginner Workbook", category: "ADHD" }),
+      mockProduct({ title: "Teacher Toolkit", category: "Teachers" }),
+    ];
+    const out = analyzeGaps(products, [], [], []);
+    return out.some((f) => f.id === "companion:singletons");
+  })()
+);
+
+check(
+  "gaps: seasonal coverage detects missing Halloween/Christmas",
+  (() => {
+    const products = [
+      mockProduct({ title: "Beginner Workbook" }),
+      mockProduct({ title: "Calm Routine" }),
+    ];
+    const out = analyzeGaps(products, [], [], []);
+    return out.some((f) => f.id === "season:halloween");
+  })()
+);
+
+// =========================================================================
 // final
 // =========================================================================
 

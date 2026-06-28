@@ -14,6 +14,7 @@ import {
   BarChart3,
   TrendingUp,
   Rocket,
+  Compass,
   Settings,
 } from "lucide-react";
 import clsx from "clsx";
@@ -21,6 +22,7 @@ import clsx from "clsx";
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/products", label: "Products", icon: Package },
+  { to: "/research", label: "Product Research", icon: Compass },
   { to: "/builder", label: "Campaign Builder", icon: Rocket },
   { to: "/copy", label: "Copy Generator", icon: PenSquare },
   { to: "/pinterest", label: "Pinterest", icon: Pin },

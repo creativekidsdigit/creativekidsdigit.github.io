@@ -91,4 +91,7 @@ export const K = {
   campaigns: "campaigns",
   perfSnapshots: "perfSnapshots",
   campaignBuilderDraft: "campaignBuilderDraft",
+  opportunities: "opportunities",
+  keywords: "keywords",
+  competitors: "competitors",
 } as const;
