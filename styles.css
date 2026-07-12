@@ -99,33 +99,7 @@ p { margin: 0 0 1rem; color: var(--ink-soft); }
 .btn-lg { padding: 1rem 1.8rem; font-size: 1rem; }
 
 /* Eyebrow / labels */
-.eyebrow {
-  display: inline-block;
-  font-family: 'Inter', sans-serif;
-  font-size: .78rem;
-  font-weight: 600;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--purple);
-  background: var(--lavender-tint);
-  padding: .35rem .75rem;
-  border-radius: 999px;
-  margin-bottom: .9rem;
-}
-.eyebrow-light { background: rgba(255,255,255,.7); }
-
-/* =========================================================
-   Announcement
-   ========================================================= */
-.announcement {
-  background: linear-gradient(90deg, var(--lavender-soft), var(--blush-soft));
-  color: var(--purple-deep);
-  text-align: center;
-  font-size: .9rem;
-  padding: .55rem 1rem;
-  border-bottom: 1px solid var(--line);
-}
-.announcement p { margin: 0; color: var(--purple-deep); font-weight: 500; }
+.c
 
 /* =========================================================
    Header / Nav
@@ -744,3 +718,6 @@ p { margin: 0 0 1rem; color: var(--ink-soft); }
     scroll-behavior: auto !important;
   }
 }
+.announcement-launch{background:linear-gradient(135deg,#E8A87C,#D88860)!important;color:#FBF8F3!important}
+.announcement-launch a:hover{opacity:.85}
+.countdown-display{font-variant-numeric:tabular-nums;font-weight:800;background:rgba(0,0,0,.18);padding:.1rem .45rem;border-radius:6px;margin:0 .15rem;display:inline-block;min-width:5.5em;text-align:center}
