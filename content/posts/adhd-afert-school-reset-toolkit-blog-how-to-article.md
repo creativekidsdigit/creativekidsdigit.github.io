@@ -1,6 +1,6 @@
 ---
 title: "ADHD afert school reset toolkit . Blog - How-To Article"
-date: "2026-07-25T22:30:50.994Z"
+date: "2026-07-25T22:30:56.372Z"
 slug: "adhd-afert-school-reset-toolkit-blog-how-to-article"
 tags: ["blog","blog"]
 ---
