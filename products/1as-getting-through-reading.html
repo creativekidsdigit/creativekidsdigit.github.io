@@ -38,12 +38,13 @@
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <!-- Navigation -->
   <header class="site-header">
     <nav class="nav container" aria-label="Primary">
       <a class="brand" href="../index.html" aria-label="Fearless Creations home">
-        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true" role="img">
           <defs><linearGradient id="petal" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#C9B6E4"/><stop offset="100%" stop-color="#9B7FBF"/></linearGradient></defs>
           <circle cx="20" cy="20" r="19" fill="#F3ECF8"/>
           <g transform="translate(20 20)"><ellipse cx="0" cy="-8" rx="4" ry="7" fill="url(#petal)"/><ellipse cx="0" cy="-8" rx="4" ry="7" fill="url(#petal)" transform="rotate(72)"/><ellipse cx="0" cy="-8" rx="4" ry="7" fill="url(#petal)" transform="rotate(144)"/><ellipse cx="0" cy="-8" rx="4" ry="7" fill="url(#petal)" transform="rotate(216)"/><ellipse cx="0" cy="-8" rx="4" ry="7" fill="url(#petal)" transform="rotate(288)"/><circle r="3" fill="#FBF8F3"/></g>
@@ -60,7 +61,7 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="container">
 
       <!-- Breadcrumb -->
@@ -76,8 +77,8 @@
       <div class="product-detail">
 
         <!-- Image -->
-        <div class="product-detail-img">
-          <svg viewBox="0 0 320 400" preserveAspectRatio="xMidYMid slice">
+        <div class="product-detail-img" aria-hidden="true">
+          <svg viewBox="0 0 320 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Lesson plan preview">
             <rect width="320" height="400" fill="#FBF8F3"/>
             <rect x="0" y="0" width="320" height="64" fill="#9B7FBF"/>
             <rect x="24" y="22" width="180" height="10" rx="3" fill="#FBF8F3"/>
@@ -140,7 +141,7 @@
           </div>
 
           <!-- What's inside -->
-          <h2 style="font-size:1.15rem; margin-top:1.8rem;">What&rsquo;s inside this lesson plan</h2>
+          <h2>What&rsquo;s inside this lesson plan</h2>
           <ul class="feature-list">
             <li>Target competency Can-do statement</li>
             <li>4 SMART objectives with Bloom verbs</li>

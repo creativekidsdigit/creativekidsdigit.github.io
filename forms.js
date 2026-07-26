@@ -25,13 +25,16 @@
 (function () {
   'use strict';
 
-  // ---------- 1. CONFIG (edit these two values) ----------
+  // ---------- 1. CONFIG (REMPLIR AVEC VOS IDs CONVERTKIT) ----------
+  // Pour trouver vos IDs :
+  // 1. Allez dans ConvertKit → Forms
+  // 2. Sélectionnez le formulaire souhaité
+  // 3. L'ID est dans l'URL : app.convertkit.com/forms/[ID]/edit
   var CONVERTKIT = {
-    leadMagnetFormId:        '',  // e.g. '8123456'  → "Homepage Free Sample" (3AS lesson plan)
-    newsletterFormId:        '',  // e.g. '8123457'  → "Newsletter — Teachers"
-    adhdLeadMagnetFormId:    '',  // e.g. '8123458'  → "ADHD Mastery Workbook" (homepage hero form)
-    // Optional: a public API key only used as a last-resort fallback path.
-    publicApiKey:      ''
+    leadMagnetFormId:        'REMPLACER_PAR_VOTRE_ID',  // Ex: '8123456' → "Homepage Free Sample" (3AS lesson plan)
+    newsletterFormId:        'REMPLACER_PAR_VOTRE_ID',  // Ex: '8123457' → "Newsletter — Teachers"
+    adhdLeadMagnetFormId:    'REMPLACER_PAR_VOTRE_ID',  // Ex: '8123458' → "ADHD Mastery Workbook"
+    publicApiKey:            'REMPLACER_PAR_VOTRE_CLE_API_PUBLIQUE'  // Optionnel
   };
 
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

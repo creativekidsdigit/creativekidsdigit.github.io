@@ -32,8 +32,15 @@ export async function generate(
   const adapter = REGISTRY[pid];
   if (!adapter) throw new Error(`Unknown provider: ${pid}`);
   if (adapter.needsApiKey && !cfg?.apiKey) {
+    const configured = Object.entries(settings.providers)
+      .filter(([, c]) => c.apiKey?.trim())
+      .map(([id]) => id);
+    const hint =
+      configured.length > 0
+        ? ` Configured providers: ${configured.join(", ")}.`
+        : " No providers have an API key configured.";
     throw new Error(
-      `${adapter.label} requires an API key. Open Settings → AI Providers to add one.`
+      `${adapter.label} requires an API key. Open Settings → AI Providers to add one.${hint}`
     );
   }
   if (!cfg?.model) {

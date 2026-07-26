@@ -6,15 +6,22 @@
   "description": "AI Copywriting Operating System — central marketing hub for digital product business",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
+    "build": "tsc -b && vite build && powershell -Command \"Copy-Item 'dist/index.html' 'dist/404.html'\"",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "dompurify": "^3.4.11",
+    "gray": "^0.0.6",
+    "gray-matter": "^4.0.3",
     "idb-keyval": "^6.2.1",
     "lucide-react": "^0.453.0",
+    "mammoth": "^1.9.0",
+    "marked": "^6.0.0",
+    "matter": "^0.2.0",
+    "pdfjs-dist": "^6.1.200",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",

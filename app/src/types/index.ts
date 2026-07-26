@@ -126,6 +126,12 @@ export interface AppSettings {
     | "revenuePotential",
     number
   >>;
+  /** GitHub Pages publishing defaults saved in settings */
+  github?: {
+    owner?: string; // GitHub username or org
+    repo?: string; // repository name
+    branch?: string; // branch to commit to (e.g. main)
+  };
 }
 
 export type Task = {

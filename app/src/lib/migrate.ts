@@ -266,6 +266,16 @@ function sanitizeProvider(
   };
 }
 
+function sanitizeGithub(v: unknown): AppSettings["github"] {
+  const fallback = DEFAULT_SETTINGS.github ?? { owner: "", repo: "", branch: "main" };
+  if (!isObject(v)) return { ...fallback };
+  return {
+    owner: asString(v.owner, fallback.owner),
+    repo: asString(v.repo, fallback.repo),
+    branch: asString(v.branch, fallback.branch),
+  };
+}
+
 export function sanitizeSettings(v: unknown): AppSettings {
   if (!isObject(v)) return { ...DEFAULT_SETTINGS };
   const activeProvider = (PROVIDER_IDS as readonly string[]).includes(
@@ -284,8 +294,21 @@ export function sanitizeSettings(v: unknown): AppSettings {
       sanitizeProvider(id, providersRaw[id], DEFAULT_SETTINGS.providers[id]),
     ])
   ) as AppSettings["providers"];
+
+  const providersWithKeys = PROVIDER_IDS.filter(
+    (id) => providers[id]?.apiKey && providers[id].apiKey.trim().length > 0
+  );
+
+  let resolvedActiveProvider = activeProvider;
+  if (
+    !providers[resolvedActiveProvider]?.apiKey?.trim() &&
+    providersWithKeys.length > 0
+  ) {
+    resolvedActiveProvider = providersWithKeys[0];
+  }
+
   return {
-    activeProvider,
+    activeProvider: resolvedActiveProvider,
     providers,
     theme,
     brandVoice: asString(v.brandVoice, DEFAULT_SETTINGS.brandVoice),
@@ -294,6 +317,15 @@ export function sanitizeSettings(v: unknown): AppSettings {
       DEFAULT_SETTINGS.defaultAudience
     ),
     autosave: asBool(v.autosave, DEFAULT_SETTINGS.autosave),
+    github: sanitizeGithub(v.github),
+    researchScoreWeights: isObject(v.researchScoreWeights)
+      ? Object.fromEntries(
+          Object.entries(v.researchScoreWeights).map(([key, value]) => [
+            key,
+            typeof value === "number" && Number.isFinite(value) ? value : 0,
+          ])
+        )
+      : DEFAULT_SETTINGS.researchScoreWeights,
   };
 }
 

@@ -1,0 +1,10 @@
+[
+  {
+    "title": "Sample Post",
+    "slug": "sample-post",
+    "date": "2026-07-08T00:00:00.000Z",
+    "excerpt": "This is a sample post generated for local previews.",
+    "tags": ["example","test"],
+    "path": "content/posts/sample-post.md"
+  }
+]

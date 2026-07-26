@@ -11,6 +11,8 @@ import PinterestStudioPage from "./pages/PinterestStudioPage";
 import SeoStudioPage from "./pages/SeoStudioPage";
 import EmailMarketingPage from "./pages/EmailMarketingPage";
 import BlogGeneratorPage from "./pages/BlogGeneratorPage";
+import BlogListPage from "./pages/BlogListPage";
+import BlogPostPage from "./pages/BlogPostPage";
 import SocialMediaPage from "./pages/SocialMediaPage";
 import SalesFunnelsPage from "./pages/SalesFunnelsPage";
 import PromptLibraryPage from "./pages/PromptLibraryPage";
@@ -23,6 +25,7 @@ import PublishingWorkspacePage from "./pages/PublishingWorkspacePage";
 import ResearchPage from "./pages/ResearchPage";
 import OpportunityDetailPage from "./pages/OpportunityDetailPage";
 import SettingsPage from "./pages/SettingsPage";
+import PublishHistoryPage from "./pages/PublishHistoryPage";
 
 export default function App() {
   // Surface persistent-write failures to the user so silent IDB rejections
@@ -60,7 +63,9 @@ export default function App() {
           <Route path="pinterest" element={<PinterestStudioPage />} />
           <Route path="seo" element={<SeoStudioPage />} />
           <Route path="email" element={<EmailMarketingPage />} />
-          <Route path="blog" element={<BlogGeneratorPage />} />
+          <Route path="blog" element={<BlogListPage />} />
+          <Route path="blog/generate" element={<BlogGeneratorPage />} />
+          <Route path="blog/:slug" element={<BlogPostPage />} />
           <Route path="social" element={<SocialMediaPage />} />
           <Route path="funnels" element={<SalesFunnelsPage />} />
           <Route path="builder" element={<CampaignBuilderPage />} />
@@ -74,6 +79,7 @@ export default function App() {
           <Route path="research/:id" element={<OpportunityDetailPage />} />
           <Route path="prompts" element={<PromptLibraryPage />} />
           <Route path="library" element={<ContentLibraryPage />} />
+          <Route path="publish-history" element={<PublishHistoryPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

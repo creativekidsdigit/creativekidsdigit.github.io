@@ -11,8 +11,14 @@ import {
 import { useAppStore } from "@/store/useAppStore";
 import { PageHeader, SectionCard, Badge, EmptyState } from "@/components/ui";
 import { toast } from "@/components/Toast";
+import { ContentValidator } from "@/components/ContentValidator";
 import { useQueryParam } from "@/lib/useQueryParam";
 import { copyText, downloadFile, formatRelative, slugify, wordCount } from "@/lib/util";
+import { publishToGitHubRepo, getFileFromGitHubRepo } from "@/lib/publish";
+import { githubConfigFromSettings } from "@/lib/githubConfig";
+import { buildSearchIndex, buildTagIndex, buildCategoryIndex } from "@/lib/blog";
+import { generateRss, generateSitemap } from "@/lib/sitegen";
+import { ContentSanitizer } from "@/lib/sanitize";
 import ExportMenu from "@/components/ExportMenu";
 import type { ContentKind } from "@/types";
 
@@ -30,6 +36,7 @@ const KINDS: ContentKind[] = [
 export default function ContentLibraryPage() {
   const content = useAppStore((s) => s.content);
   const products = useAppStore((s) => s.products);
+  const settings = useAppStore((s) => s.settings);
   const updateContent = useAppStore((s) => s.updateContent);
   const deleteContent = useAppStore((s) => s.deleteContent);
   const togglePin = useAppStore((s) => s.togglePinContent);
@@ -194,6 +201,145 @@ export default function ContentLibraryPage() {
                     >
                       <Download className="h-3.5 w-3.5" aria-hidden="true" /> .md
                     </button>
+                    <button
+                      className="btn-primary h-8"
+                      onClick={async () => {
+                        try {
+                          const githubConfig = githubConfigFromSettings(settings);
+                          const { owner, repo, branch, token } = githubConfig;
+                          console.log({ owner, repo, branch, token, allLocalStorage: Object.keys(localStorage) });
+
+                          if (!owner || !repo) {
+                            toast.error("Set GitHub owner/repo in Settings first.");
+                            return;
+                          }
+                          if (!token) {
+                            toast.error("No GitHub token found. Add it in Settings.");
+                            return;
+                          }
+
+                          // Build slug and frontmatter
+                          const slug = slugify(active.title);
+                          const date = new Date().toISOString();
+                          
+                          // Sanitize content to ensure GitHub API compatibility
+                          const sanitizedTitle = ContentSanitizer.sanitize(active.title);
+                          const sanitizedBody = ContentSanitizer.sanitize(active.body);
+                          const sanitizedTags = active.tags.map((tag: string) => ContentSanitizer.sanitize(tag));
+                          
+                          // Log sanitization info
+                          const titleValidation = ContentSanitizer.validate(active.title);
+                          const bodyValidation = ContentSanitizer.validate(active.body);
+                          if (!titleValidation.valid || !bodyValidation.valid) {
+                            console.log("[publish] Content will be sanitized:", {
+                              titleReplacements: Object.keys(titleValidation.replacements).length,
+                              bodyReplacements: Object.keys(bodyValidation.replacements).length,
+                            });
+                          }
+                          
+                          const frontmatter = `---\ntitle: "${sanitizedTitle.replace(/"/g, '\\"')}"\ndate: "${date}"\nslug: "${slug}"\ntags: ${JSON.stringify(sanitizedTags)}\n---\n\n`;
+                          const md = frontmatter + sanitizedBody;
+
+                          const path = `content/posts/${slug}.md`;
+                          const commitMsg = `Publish: ${active.title}`;
+
+                          // Publish the post markdown and capture SHA
+                          const res = await publishToGitHubRepo({
+                            owner,
+                            repo,
+                            path,
+                            branch,
+                            token,
+                            content: md,
+                            message: commitMsg,
+                          });
+
+                          // Update index JSON at content/posts/index.json
+                          const indexPath = `content/posts/index.json`;
+                          const existing = await getFileFromGitHubRepo({ owner, repo, path: indexPath, branch, token });
+                          let index = [] as any[];
+                          if (existing.content) {
+                            try {
+                              index = JSON.parse(existing.content);
+                            } catch {
+                              index = [];
+                            }
+                          }
+                          // Remove any existing entry with same slug
+                          index = index.filter((ent: any) => ent.slug !== slug);
+                          // Prepend new entry
+                          const excerpt = ContentSanitizer.sanitize((active as any).excerpt || active.body.slice(0, 160));
+                          index.unshift({
+                            title: sanitizedTitle,
+                            slug,
+                            date,
+                            path,
+                            tags: sanitizedTags,
+                            excerpt,
+                            category: (active as any).category,
+                          });
+                          const idxRes = await publishToGitHubRepo({
+                            owner,
+                            repo,
+                            path: indexPath,
+                            branch,
+                            token,
+                            content: JSON.stringify(index, null, 2),
+                            message: `Update blog index: ${active.title}`,
+                          });
+
+                          // Build and publish search, tag and category indices
+                          const searchIndex = buildSearchIndex(index as any[]);
+                          const tagsIndex = buildTagIndex(index as any[]);
+                          const categoriesIndex = buildCategoryIndex(index as any[]);
+
+                          await publishToGitHubRepo({ owner, repo, path: `content/posts/search-index.json`, branch, token, content: JSON.stringify(searchIndex, null, 2), message: `Update search index: ${active.title}` });
+                          await publishToGitHubRepo({ owner, repo, path: `content/posts/tags.json`, branch, token, content: JSON.stringify(tagsIndex, null, 2), message: `Update tags index: ${active.title}` });
+                          await publishToGitHubRepo({ owner, repo, path: `content/posts/categories.json`, branch, token, content: JSON.stringify(categoriesIndex, null, 2), message: `Update categories index: ${active.title}` });
+
+                          // Generate RSS and sitemap
+                          const siteBase = repo.toLowerCase().endsWith(".github.io") ? `https://${repo}` : `https://${owner}.github.io/${repo}`;
+                          const rss = generateRss(index as any[], siteBase);
+                          const sitemap = generateSitemap(index as any[], siteBase);
+
+                          const rssRes = await publishToGitHubRepo({ owner, repo, path: `rss.xml`, branch, token, content: rss, message: `Update RSS: ${active.title}` });
+                          const sitemapRes = await publishToGitHubRepo({ owner, repo, path: `sitemap.xml`, branch, token, content: sitemap, message: `Update sitemap: ${active.title}` });
+
+                          // Mark as published locally
+                          await updateContent(active.id, { publishedAt: Date.now() });
+
+                          // Record publish history locally
+                          try {
+                            const histRaw = localStorage.getItem("aicw.publish.history");
+                            const hist = histRaw ? JSON.parse(histRaw) : [];
+                            hist.unshift({
+                              id: active.id,
+                              title: active.title,
+                              slug,
+                              date,
+                              status: "published",
+                              path,
+                              url: `https://${siteBase.replace(/\/$/, "")}/blog/${slug}`,
+                              sha: res.sha || idxRes.sha || rssRes.sha || sitemapRes.sha || null,
+                            });
+                            localStorage.setItem("aicw.publish.history", JSON.stringify(hist.slice(0, 200)));
+                          } catch {
+                            /* ignore */
+                          }
+
+                          // Construct live URL (best-effort)
+                          const liveUrl = `${siteBase.replace(/\/$/, "")}/app/blog/${slug}`;
+
+                          toast.success(`Published: ${res.url}`);
+                          window.open(liveUrl, "_blank");
+                        } catch (e: unknown) {
+                          const msg = e instanceof Error ? e.message : String(e);
+                          toast.error(msg);
+                        }
+                      }}
+                    >
+                      Publish
+                    </button>
                     <ExportMenu
                       scope="asset"
                       label="Export"
@@ -239,6 +385,7 @@ export default function ContentLibraryPage() {
                     updateContent(active.id, { body: e.target.value })
                   }
                 />
+                <ContentValidator content={active.body} title="Content" showDetails={true} />
               </SectionCard>
             )}
           </div>

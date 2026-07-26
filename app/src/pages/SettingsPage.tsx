@@ -14,6 +14,7 @@ import {
   totalDropped,
   formatDroppedBreakdown,
 } from "@/lib/backupImport";
+import { getGithubToken, setGithubToken, clearGithubToken } from "@/lib/githubConfig";
 import { PageHeader, SectionCard } from "@/components/ui";
 import { toast } from "@/components/Toast";
 import type { ProviderId } from "@/types";
@@ -35,6 +36,10 @@ export default function SettingsPage() {
   const idTheme = useId();
   const idAutosave = useId();
   const idImport = useId();
+  const idGithubOwner = useId();
+  const idGithubRepo = useId();
+  const idGithubBranch = useId();
+  const idGithubToken = useId();
 
   return (
     <>
@@ -159,6 +164,69 @@ export default function SettingsPage() {
               <option value="on">On</option>
               <option value="off">Off</option>
             </select>
+          </SectionCard>
+
+          <SectionCard title="Publishing (GitHub)">
+            <label htmlFor={idGithubOwner} className="label">
+              GitHub owner (username/org)
+            </label>
+            <input
+              id={idGithubOwner}
+              className="input"
+              value={settings.github?.owner ?? ""}
+              onChange={(e) => setSettings({ github: { ...(settings.github ?? {}), owner: e.target.value } })}
+            />
+
+            <label htmlFor={idGithubRepo} className="label mt-4">
+              Repository name
+            </label>
+            <input
+              id={idGithubRepo}
+              className="input"
+              value={settings.github?.repo ?? ""}
+              onChange={(e) => setSettings({ github: { ...(settings.github ?? {}), repo: e.target.value } })}
+            />
+
+            <label htmlFor={idGithubBranch} className="label mt-4">
+              Branch
+            </label>
+            <input
+              id={idGithubBranch}
+              className="input"
+              value={settings.github?.branch ?? "main"}
+              onChange={(e) => setSettings({ github: { ...(settings.github ?? {}), branch: e.target.value } })}
+            />
+
+            <label htmlFor={idGithubToken} className="label mt-4">
+              GitHub Personal Access Token
+            </label>
+            <input
+              id={idGithubToken}
+              className="input"
+              type="password"
+              placeholder="Enter token to publish (stored locally)"
+              defaultValue={getGithubToken()}
+              onChange={(e) => {
+                console.log("TOKEN VALUE:", JSON.stringify(e.target.value));
+                console.log("LENGTH:", e.target.value.length);
+                setGithubToken(e.target.value);
+              }}
+              autoComplete="new-password"
+            />
+            <div className="mt-2 flex gap-2">
+              <button
+                className="btn-ghost"
+                onClick={() => {
+                  clearGithubToken();
+                  toast.success("GitHub token removed");
+                }}
+              >
+                Remove GitHub Token
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              The token is stored locally in your browser. Use a token with repo scope so the app can commit files to the repo.
+            </p>
           </SectionCard>
 
           <SectionCard title="Data">

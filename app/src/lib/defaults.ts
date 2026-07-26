@@ -9,6 +9,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultAudience:
     "Parents of children ages 5–12, especially those with ADHD or sensory needs.",
   autosave: true,
+  github: {
+    owner: "",
+    repo: "",
+    branch: "main",
+  },
   /**
    * Default Opportunity Score weights. Sum doesn't need to be 1 — the score
    * normalizes by total weight. These defaults bias toward "fit + revenue"

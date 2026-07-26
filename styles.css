@@ -17,6 +17,7 @@
   --ink: #2E2640;
   --ink-soft: #5C5374;
   --muted: #8A82A0;
+  --muted-dark: #5A526E; /* Meilleure accessibilité sur fond clair */
   --line: #ECE3F2;
   --shadow: 0 14px 40px rgba(123, 96, 168, 0.10);
   --shadow-sm: 0 6px 20px rgba(123, 96, 168, 0.08);
@@ -56,7 +57,7 @@ h1, h2, h3, h4 {
 p { margin: 0 0 1rem; color: var(--ink-soft); }
 
 .container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 1.25rem; }
-.muted { color: var(--muted); }
+.muted { color: var(--ink-soft); } /* Meilleure accessibilité : contraste 5.5:1 sur fond #FBF8F3 */
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0,0,0,0); border: 0;
@@ -99,7 +100,33 @@ p { margin: 0 0 1rem; color: var(--ink-soft); }
 .btn-lg { padding: 1rem 1.8rem; font-size: 1rem; }
 
 /* Eyebrow / labels */
-.c
+.eyebrow {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--purple);
+  background: var(--lavender-tint);
+  padding: .35rem .75rem;
+  border-radius: 999px;
+  margin-bottom: .9rem;
+}
+.eyebrow-light { background: rgba(255,255,255,.7); }
+
+/* =========================================================
+   Announcement
+   ========================================================= */
+.announcement {
+  background: linear-gradient(90deg, var(--lavender-soft), var(--blush-soft));
+  color: var(--purple-deep);
+  text-align: center;
+  font-size: .9rem;
+  padding: .55rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.announcement p { margin: 0; color: var(--purple-deep); font-weight: 500; }
 
 /* =========================================================
    Header / Nav
@@ -718,6 +745,3 @@ p { margin: 0 0 1rem; color: var(--ink-soft); }
     scroll-behavior: auto !important;
   }
 }
-.announcement-launch{background:linear-gradient(135deg,#E8A87C,#D88860)!important;color:#FBF8F3!important}
-.announcement-launch a:hover{opacity:.85}
-.countdown-display{font-variant-numeric:tabular-nums;font-weight:800;background:rgba(0,0,0,.18);padding:.1rem .45rem;border-radius:6px;margin:0 .15rem;display:inline-block;min-width:5.5em;text-align:center}
