@@ -6,7 +6,7 @@
   "description": "AI Copywriting Operating System — central marketing hub for digital product business",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && powershell -Command \"Copy-Item 'dist/index.html' 'dist/404.html'\"",
+    "build": "tsc -b && vite build && node -e \"require('fs').copyFileSync('dist/index.html', 'dist/404.html')\"",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint src --ext .ts,.tsx"
