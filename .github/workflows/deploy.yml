@@ -50,6 +50,8 @@ jobs:
           # Mount the built app at /app/
           mkdir -p _site/app
           cp -R app/dist/. _site/app/
+          # Copy 404.html for SPA fallback
+          cp 404.html _site/
 
       - uses: actions/configure-pages@v5
 
