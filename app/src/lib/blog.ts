@@ -36,6 +36,7 @@ export async function fetchPostBySlug(slug: string): Promise<{ meta: PostMeta; h
     meta.slug = meta.slug || slug;
     return { meta, html, raw };
   } catch (e) {
+    console.error('[DEBUG] fetchPostBySlug threw an error:', e);
     return null;
   }
 }
