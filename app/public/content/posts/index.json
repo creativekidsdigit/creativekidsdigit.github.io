@@ -4,7 +4,39 @@
     "slug": "sample-post",
     "date": "2026-07-08T00:00:00.000Z",
     "excerpt": "This is a sample post generated for local previews.",
-    "tags": ["example","test"],
+    "tags": ["example", "test"],
     "path": "content/posts/sample-post.md"
+  },
+  {
+    "title": "Why ADHD Kids Struggle With Transitions (And What Actually Helps, According to Research)",
+    "slug": "why-adhd-kids-struggle-with-transitions",
+    "date": "2026-07-26T17:38:39.306Z",
+    "excerpt": "ADHD & Classroom Transitions - Content Package",
+    "tags": ["copy", "adhdafterschool"],
+    "path": "content/posts/why-adhd-kids-struggle-with-transitions.md"
+  },
+  {
+    "title": "10 ADHD Classroom Strategies That Actually Work (Teacher-Tested & Easy to Implement)",
+    "slug": "10-adhd-classroom-strategies-that-actually-work",
+    "date": "2026-07-26T16:51:13.170Z",
+    "excerpt": "10 ADHD Classroom Strategies That Actually Work (Teacher-Tested & Easy to Implement)",
+    "tags": ["blog", "ADHD classroom accommodations", "ADHD teacher toolkit", "ADHD classroom management", "Executive functioning", "Visual schedules", "Behavior charts", "Classroom organization", "ADHD resources for teachers", "Special education printables"],
+    "path": "content/posts/10-adhd-classroom-strategies-that-actually-work.md"
+  },
+  {
+    "title": "Managing ADHD at Home: A Practical Support Guide for Parents",
+    "slug": "managing-adhd-at-home-parent-guide",
+    "date": "2026-07-23",
+    "excerpt": "Tired of the homework fights and morning meltdowns? A teacher's guide to ADHD parenting support with routines, scripts, and tools that actually work at home.",
+    "tags": ["adhd", "parenting", "home-routines", "emotional-regulation"],
+    "path": "content/posts/managing-adhd-at-home-parent-guide.md"
+  },
+  {
+    "title": "The ADHD Classroom Playbook: The Smart Parent's Guide to Supporting Teachers",
+    "slug": "adhd-classroom-playbook",
+    "date": "2026-07-08",
+    "excerpt": "Compare top ADHD classroom resources, spot must-have features, and choose the right toolkit for your child's teacher. A practical guide for parents and educators.",
+    "tags": ["ADHD", "Classroom", "Parenting", "ADHD classroom tools", "parent-teacher collaboration", "executive function"],
+    "path": "content/posts/adhd-classroom-playbook.md"
   }
 ]
