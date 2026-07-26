@@ -4,6 +4,8 @@ import { fetchPostBySlug, fetchPostIndex, findRelatedPosts, findPrevNext } from 
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
+  type PostStatus = 'loading' | 'found' | 'not-found';
+  const [status, setStatus] = useState<PostStatus>('loading');
   const [post, setPost] = useState<any | null>(null);
   const [related, setRelated] = useState<any[]>([]);
   const [prevNext, setPrevNext] = useState<{ prev: any | null; next: any | null }>({ prev: null, next: null });
@@ -11,9 +13,14 @@ export default function BlogPostPage() {
   useEffect(() => {
     if (!slug) return;
     (async () => {
+      setStatus('loading');
       const p = await fetchPostBySlug(slug);
-      if (!p) return;
+      if (!p) {
+        setStatus('not-found');
+        return;
+      }
       setPost(p);
+      setStatus('found');
       document.title = p.meta?.title || "Blog";
       const desc = p.meta?.excerpt || "";
       let el = document.querySelector("meta[name=description]") as HTMLMetaElement | null;
@@ -119,7 +126,8 @@ export default function BlogPostPage() {
     })();
   }, [slug]);
 
-  if (!post) return <div className="p-6">Loading...</div>;
+  if (status === 'loading') return <div className="p-6">Loading...</div>;
+  if (status === 'not-found') return <div className="p-6">Post not found.</div>;
 
   return (
     <article className="prose lg:prose-xl p-6">
