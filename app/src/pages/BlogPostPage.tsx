@@ -15,12 +15,15 @@ export default function BlogPostPage() {
     (async () => {
       setStatus('loading');
       const p = await fetchPostBySlug(slug);
+      console.log('[DEBUG] fetchPostBySlug result:', p);
       if (!p) {
+        console.log('[DEBUG] p was falsy, slug was:', slug);
         setStatus('not-found');
         return;
       }
       setPost(p);
       setStatus('found');
+      console.log('[DEBUG] status set to found, post meta:', p.meta);
       document.title = p.meta?.title || "Blog";
       const desc = p.meta?.excerpt || "";
       let el = document.querySelector("meta[name=description]") as HTMLMetaElement | null;
