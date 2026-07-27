@@ -15,6 +15,7 @@ import { ContentValidator } from "@/components/ContentValidator";
 import { useQueryParam } from "@/lib/useQueryParam";
 import { copyText, downloadFile, formatRelative, slugify, wordCount } from "@/lib/util";
 import { publishToGitHubRepo, getFileFromGitHubRepo } from "@/lib/publish";
+import { publishSnapshotToGitHub } from "@/lib/githubBackup";
 import { githubConfigFromSettings } from "@/lib/githubConfig";
 import { buildSearchIndex, buildTagIndex, buildCategoryIndex } from "@/lib/blog";
 import { generateRss, generateSitemap } from "@/lib/sitegen";
@@ -305,10 +306,24 @@ export default function ContentLibraryPage() {
                           const rssRes = await publishToGitHubRepo({ owner, repo, path: `rss.xml`, branch, token, content: rss, message: `Update RSS: ${active.title}` });
                           const sitemapRes = await publishToGitHubRepo({ owner, repo, path: `sitemap.xml`, branch, token, content: sitemap, message: `Update sitemap: ${active.title}` });
 
-                          // Mark as published locally
-                          await updateContent(active.id, { publishedAt: Date.now() });
+                           // Mark as published locally
+                           await updateContent(active.id, { publishedAt: Date.now() });
 
-                          // Record publish history locally
+                           // Best-effort workspace snapshot to GitHub (non-blocking)
+                          try {
+                            const snapshot = await useAppStore.getState().exportAll();
+                            await publishSnapshotToGitHub({
+                              owner,
+                              repo,
+                              branch,
+                              token,
+                              snapshotJson: snapshot,
+                            });
+                          } catch (snapshotErr) {
+                            console.warn("[backup] Workspace snapshot failed:", snapshotErr);
+                          }
+
+                           // Record publish history locally
                           try {
                             const histRaw = localStorage.getItem("aicw.publish.history");
                             const hist = histRaw ? JSON.parse(histRaw) : [];
