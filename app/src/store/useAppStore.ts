@@ -170,7 +170,7 @@ export const useAppStore = create<AppState>((set, get) => ({
               return false;
             }
             if (typeof entry.url === "string") {
-              entry.url = entry.url.replace(/\/app\/blog\//g, "/blog/");
+              entry.url = entry.url.replace(/\/app\/blog\//g, "/blog/").replace(/^https:\/\/https:\/\//, "https://");
             }
             return true;
           });

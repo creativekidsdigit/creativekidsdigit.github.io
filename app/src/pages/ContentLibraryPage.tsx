@@ -299,7 +299,7 @@ export default function ContentLibraryPage() {
                           await publishToGitHubRepo({ owner, repo, path: `content/posts/categories.json`, branch, token, content: JSON.stringify(categoriesIndex, null, 2), message: `Update categories index: ${active.title}` });
 
                           // Generate RSS and sitemap
-                          const siteBase = repo.toLowerCase().endsWith(".github.io") ? `https://${repo}` : `https://${owner}.github.io/${repo}`;
+                           const siteBase = repo.toLowerCase().endsWith(".github.io") ? repo : `${owner}.github.io/${repo}`;
                           const rss = generateRss(index as any[], siteBase);
                           const sitemap = generateSitemap(index as any[], siteBase);
 
@@ -343,7 +343,7 @@ export default function ContentLibraryPage() {
                           }
 
                            // Construct live URL (best-effort)
-                           const liveUrl = `${siteBase.replace(/\/$/, "")}/blog/${slug}`;
+                            const liveUrl = `https://${siteBase.replace(/\/$/, "")}/blog/${slug}`;
 
                           toast.success(`Published: ${res.url}`);
                           window.open(liveUrl, "_blank");
