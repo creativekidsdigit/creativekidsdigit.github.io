@@ -17,6 +17,7 @@ import { copyText, downloadFile, formatRelative, slugify, wordCount } from "@/li
 import { publishToGitHubRepo, getFileFromGitHubRepo } from "@/lib/publish";
 import { publishSnapshotToGitHub } from "@/lib/githubBackup";
 import { githubConfigFromSettings } from "@/lib/githubConfig";
+import { sanitizeHistoryEntry } from "@/lib/publishHistory";
 import { buildSearchIndex, buildTagIndex, buildCategoryIndex } from "@/lib/blog";
 import { generateRss, generateSitemap } from "@/lib/sitegen";
 import { ContentSanitizer } from "@/lib/sanitize";
@@ -323,24 +324,27 @@ export default function ContentLibraryPage() {
                             console.warn("[backup] Workspace snapshot failed:", snapshotErr);
                           }
 
-                           // Record publish history locally
-                          try {
-                            const histRaw = localStorage.getItem("aicw.publish.history");
-                            const hist = histRaw ? JSON.parse(histRaw) : [];
-                            hist.unshift({
-                              id: active.id,
-                              title: active.title,
-                              slug,
-                              date,
-                              status: "published",
-                              path,
-                              url: `https://${siteBase.replace(/\/$/, "")}/blog/${slug}`,
-                              sha: res.sha || idxRes.sha || rssRes.sha || sitemapRes.sha || null,
-                            });
-                            localStorage.setItem("aicw.publish.history", JSON.stringify(hist.slice(0, 200)));
-                          } catch {
-                            /* ignore */
-                          }
+                            // Record publish history locally
+                           try {
+                             const histRaw = localStorage.getItem("aicw.publish.history");
+                             const hist = histRaw ? JSON.parse(histRaw) : [];
+                             const newEntry = sanitizeHistoryEntry({
+                               id: active.id,
+                               title: active.title,
+                               slug,
+                               date,
+                               status: "published",
+                               path,
+                               url: `https://${siteBase.replace(/\/$/, "")}/blog/${slug}`,
+                               sha: res.sha || idxRes.sha || rssRes.sha || sitemapRes.sha || null,
+                             });
+                             if (newEntry) {
+                               hist.unshift(newEntry);
+                               localStorage.setItem("aicw.publish.history", JSON.stringify(hist.slice(0, 200)));
+                             }
+                           } catch {
+                             /* ignore */
+                           }
 
                            // Construct live URL (best-effort)
                             const liveUrl = `https://${siteBase.replace(/\/$/, "")}/blog/${slug}`;

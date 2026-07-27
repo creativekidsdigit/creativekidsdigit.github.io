@@ -3,18 +3,14 @@ import { Link } from "react-router-dom";
 import { useAppStore } from "@/store/useAppStore";
 import { deleteFileFromGitHubRepo, publishToGitHubRepo, getFileFromGitHubRepo } from "@/lib/publish";
 import { githubConfigFromSettings } from "@/lib/githubConfig";
+import { getPublishHistory } from "@/lib/publishHistory";
 
 export default function PublishHistoryPage() {
   const settings = useAppStore((s) => s.settings);
   const [hist, setHist] = useState<any[]>([]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("aicw.publish.history");
-      setHist(raw ? JSON.parse(raw) : []);
-    } catch {
-      setHist([]);
-    }
+    setHist(getPublishHistory());
   }, []);
 
   async function republish(entry: any) {
