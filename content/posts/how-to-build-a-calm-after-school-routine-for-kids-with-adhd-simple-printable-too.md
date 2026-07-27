@@ -1,6 +1,6 @@
 ---
 title: "How to Build a Calm After-School Routine for Kids with ADHD - Simple Printable Toolkit Steps"
-date: "2026-07-27T14:16:35.028Z"
+date: "2026-07-27T19:12:11.411Z"
 slug: "how-to-build-a-calm-after-school-routine-for-kids-with-adhd-simple-printable-too"
 tags: ["blog","blog","ADHD after school routine","ADHD printable","visual schedule"]
 ---
