@@ -342,8 +342,8 @@ export default function ContentLibraryPage() {
                             /* ignore */
                           }
 
-                          // Construct live URL (best-effort)
-                          const liveUrl = `${siteBase.replace(/\/$/, "")}/app/blog/${slug}`;
+                           // Construct live URL (best-effort)
+                           const liveUrl = `${siteBase.replace(/\/$/, "")}/blog/${slug}`;
 
                           toast.success(`Published: ${res.url}`);
                           window.open(liveUrl, "_blank");

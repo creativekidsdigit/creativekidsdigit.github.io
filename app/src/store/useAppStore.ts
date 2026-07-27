@@ -157,6 +157,32 @@ export const useAppStore = create<AppState>((set, get) => ({
   competitors: [],
 
   async hydrate() {
+    // Repair stale publish-history localStorage entries from earlier builds
+    // that used the wrong "/app/blog/" prefix or stored placeholder slugs.
+    try {
+      const raw = localStorage.getItem("aicw.publish.history");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter((entry: any) => {
+            if (!entry || typeof entry !== "object") return false;
+            if (typeof entry.slug === "string" && (entry.slug === "[slug]" || entry.slug.includes("[slug]"))) {
+              return false;
+            }
+            if (typeof entry.url === "string") {
+              entry.url = entry.url.replace(/\/app\/blog\//g, "/blog/");
+            }
+            return true;
+          });
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem("aicw.publish.history", JSON.stringify(cleaned));
+          }
+        }
+      }
+    } catch {
+      /* ignore migration errors */
+    }
+
     // Read everything in parallel, then run each blob through a shape guard.
     // Bad/missing values fall back to safe defaults so a single malformed key
     // never wedges the entire app.
