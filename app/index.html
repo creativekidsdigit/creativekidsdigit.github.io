@@ -29,9 +29,14 @@
         const params = new URLSearchParams(window.location.search);
         const path = params.get('path');
         if (path) {
-          // Decode the path and replace the current history entry
+          // Decode the path and prepend the /app basename so the React router
+          // (mounted at /app/) can match routes like /app/blog/:slug.
           const decodedPath = decodeURIComponent(path);
-          window.history.replaceState({}, '', decodedPath);
+          const basename = '/app';
+          const fullPath = decodedPath.startsWith(basename)
+            ? decodedPath
+            : basename + decodedPath;
+          window.history.replaceState({}, '', fullPath);
         }
       })();
     </script>

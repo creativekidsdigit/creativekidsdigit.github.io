@@ -4,17 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Redirecting...</title>
-  <script>
-    // GitHub Pages SPA fallback for /app/ routes
-    const path = window.location.pathname + window.location.search + window.location.hash;
-    if (path.startsWith('/app/')) {
-      // Encode the original path and redirect to /app/index.html
+    <script>
+      // GitHub Pages SPA fallback — send everything to the React app at /app/
+      const path = window.location.pathname + window.location.search + window.location.hash;
       window.location.replace('/app/index.html?path=' + encodeURIComponent(path));
-    } else {
-      // Fallback to root for non-/app/ routes
-      window.location.replace('/index.html?path=' + encodeURIComponent(path));
-    }
-  </script>
+    </script>
 </head>
 <body>
   <p>Redirecting to the app...</p>
