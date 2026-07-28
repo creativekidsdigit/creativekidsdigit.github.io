@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-07-28T19:20:01.774Z",
+  "exportedAt": "2026-07-28T20:07:02.733Z",
   "settings": {
     "activeProvider": "openrouter",
     "providers": {
@@ -116,9 +116,9 @@
         "visual schedule"
       ],
       "pinned": false,
-      "publishedAt": 1785266401760,
+      "publishedAt": 1785269222723,
       "createdAt": 1785161788493,
-      "updatedAt": 1785266401760
+      "updatedAt": 1785269222723
     }
   ],
   "prompts": [
