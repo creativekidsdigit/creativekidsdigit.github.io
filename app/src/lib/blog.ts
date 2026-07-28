@@ -13,7 +13,7 @@ export interface PostMeta {
 
 export async function fetchPostIndex(): Promise<PostMeta[]> {
   try {
-    const base = import.meta.env.BASE_URL || "/";
+    const base = "/";
     const res = await fetch(`${base}content/posts/index.json`);
     if (!res.ok) return [];
     const json = await res.json();
@@ -25,7 +25,7 @@ export async function fetchPostIndex(): Promise<PostMeta[]> {
 
 export async function fetchPostBySlug(slug: string): Promise<{ meta: PostMeta; html: string; raw: string } | null> {
   try {
-    const base = import.meta.env.BASE_URL || "/";
+    const base = "/";
     const res = await fetch(`${base}content/posts/${slug}.md`);
     if (!res.ok) return null;
     const raw = await res.text();
