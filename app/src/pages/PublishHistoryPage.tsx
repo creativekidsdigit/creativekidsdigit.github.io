@@ -31,20 +31,64 @@ export default function PublishHistoryPage() {
     }
   }
 
+  async function cleanupIndexOnGitHub(owner: string, repo: string, branch: string, token: string, entry: any) {
+    const indexPath = "content/posts/index.json";
+    try {
+      const result = await getFileFromGitHubRepo({ owner, repo, path: indexPath, branch, token });
+      if (!result.content) return;
+      let entries: any[] = [];
+      try {
+        entries = JSON.parse(result.content);
+      } catch {
+        return;
+      }
+      const filtered = entries.filter((e: any) => e.slug !== entry.slug);
+      if (filtered.length === entries.length) return;
+      const updated = JSON.stringify(filtered, null, 2);
+      await publishToGitHubRepo({ owner, repo, path: indexPath, branch, token, content: updated, message: `Remove deleted post from index: ${entry.title}` });
+    } catch {
+      // ignore index cleanup errors
+    }
+  }
+
   async function deleteRemote(entry: any) {
     const { owner, repo, branch, token } = githubConfigFromSettings(settings);
     if (!token || !owner || !repo) return alert("Missing GitHub settings/token");
 
     try {
       const branchToUse = branch || "main";
+      let sha: string | null = null;
+      let fileExisted = true;
+
       const metaRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(entry.path)}?ref=${encodeURIComponent(branchToUse)}`, {
         headers: { Authorization: `token ${token}` },
       });
-      if (!metaRes.ok) throw new Error("Failed to fetch file info");
-      const js = await metaRes.json();
-      const sha = js.sha;
-      await deleteFileFromGitHubRepo({ owner, repo, path: entry.path, token, sha, message: `Delete: ${entry.title}`, branch: branchToUse });
-      alert("Deleted from repo");
+      if (!metaRes.ok) {
+        if (metaRes.status === 404) {
+          fileExisted = false;
+        } else {
+          throw new Error(`Failed to fetch file info: ${metaRes.status}`);
+        }
+      } else {
+        const js = await metaRes.json();
+        sha = js.sha;
+      }
+
+      if (fileExisted && sha) {
+        await deleteFileFromGitHubRepo({ owner, repo, path: entry.path, token, sha, message: `Delete: ${entry.title}`, branch: branchToUse });
+      }
+
+      await cleanupIndexOnGitHub(owner, repo, branchToUse, token, entry);
+
+      const raw = localStorage.getItem("aicw.publish.history");
+      if (raw) {
+        const hist = JSON.parse(raw);
+        const cleaned = hist.filter((h: any) => h.slug !== entry.slug && h.id !== entry.id);
+        localStorage.setItem("aicw.publish.history", JSON.stringify(cleaned));
+        setHist(getPublishHistory());
+      }
+
+      alert(fileExisted ? "Deleted from repo and cleaned up locally" : "File was already missing from repo; cleaned up local history");
     } catch (e: any) {
       alert(String(e.message || e));
     }
